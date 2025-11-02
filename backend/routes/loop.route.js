@@ -1,0 +1,13 @@
+import express from "express"
+import isAuth from "../middlewares/isAuth.js"
+import { upload } from "../middlewares/multer.js"
+import { getAllLoops, uploadLoop, like, comment } from "../controllers/loop.controller.js"
+
+const loopRouter =express.Router()
+
+loopRouter.post("/upload",isAuth,upload.single("media"),uploadLoop)
+loopRouter.get("/getAll",isAuth,getAllLoops)
+loopRouter.get("/like/:loopId",isAuth,like)
+loopRouter.get("/comment",isAuth,comment)
+
+export default loopRouter
