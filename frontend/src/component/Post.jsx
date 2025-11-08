@@ -56,7 +56,7 @@ function Post({ post }) {
     }
 
     return (
-        <div className='w-[90%] min-h-[450px] pb-[20px] max-w-[500px] flex flex-col gap-4 bg-white items-center shadow-lg shadow-[#00000030] rounded-2xl overflow-hidden'>
+        <div className='w-[90%] min-h-[450px] pb-[20px] max-w-[500px] flex flex-col gap-4 bg-white items-center shadow-lg shadow-[#00000030] rounded-2xl overflow-y-scroll'>
 
 
             <div className='w-full flex justify-between items-center px-4 py-3'>

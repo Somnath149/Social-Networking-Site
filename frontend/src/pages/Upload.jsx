@@ -113,10 +113,11 @@ function Upload() {
                 <div className={`${uploadType == "reel" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full
                  hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setUploadType("reel")}>Reel</div>
             </div>
+
             {!frontendMedia && <div className='w-[80%] max-w-[500px] h-[250px] bg-[#0e1316] border-gray-800 border-2 flex flex-col
             items-center justify-center gap-[8px] mt-[15vh] rounded-2xl cursor-pointer hover:bg-[#353a3d]'
                 onClick={() => mediaInput.current.click()}>
-                <input type="file" hidden ref={mediaInput} onChange={handleMedia} />
+                <input type="file" accept={uploadType == "loop"? "video/*" : ""} hidden ref={mediaInput} onChange={handleMedia} />
                 <div><FaPlusSquare className='text-[white] w-[25px] h-[25px] cursor-pointer' onClick={() => navigate(`/upload`)} /></div>
                 <div className='text-white text-[19px] font-semibold'>Upload {uploadType}</div>
             </div>}

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { serverUrl } from '../App'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -9,12 +9,15 @@ import { MdOutlineKeyboardBackspace } from "react-icons/md"
 import Nav from '../component/Nav'
 import dp1 from "../assets/dp1.jpeg"
 import FollowButton from '../component/FollowButton'
+import Post from '../component/Post'
 
 function Profile() {
+  const [PostType, setPostType] = useState("allPost")
   const navigate = useNavigate()
   const { userName } = useParams()
   const dispatch = useDispatch()
   const { profileData, userData } = useSelector(state => state.user)
+  const { postData } = useSelector(state => state.post)
   const handleProfile = async () => {
     try {
       const result = await axios.get(`${serverUrl}/api/user/getProfile/${userName}`, { withCredentials: true })
@@ -37,7 +40,7 @@ function Profile() {
     }
   }
   return (
-    <div className='w-full min-h-screen bg-black'>
+    <div className='w-full h-screen overflow-y-auto bg-black'>
       <div className='w-full h-[80px] flex justify-between items-center px-[30px] text-white'>
         <div className='text-white w-[25px] h-[25px] cursor-pointer' onClick={() => navigate("/")}><MdOutlineKeyboardBackspace
           className='text-white cursor-pointer w-[25px] h-[25px]' /></div>
@@ -69,7 +72,7 @@ function Profile() {
               {
                 profileData?.following?.slice(0, 3).map((user, index) => (
                   <div className={`w-[40px] h-[40px] border-2 border-black rounded-full cursor-pointer overflow-hidden
-                   ${index > 0 ? `absolute left-[${index*9}]` : ""}`}>
+                   ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}>
                     <img src={user.profileImage || dp1} alt="" className='w-full object-cover' />
                   </div>
                 ))
@@ -89,7 +92,7 @@ function Profile() {
               {
                 profileData?.followers?.slice(0, 3).map((user, index) => (
                   <div className={`w-[40px] h-[40px] border-2 border-black rounded-full cursor-pointer overflow-hidden
-                   ${index > 0 ? `absolute left-[${index*9}]` : ""}`}>
+                   ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}>
                     <img src={user.profileImage || dp1} alt="" className='w-full object-cover' />
                   </div>
                 ))
@@ -119,10 +122,36 @@ function Profile() {
       </div>
 
       <div className='w-full min-h-[100vh] flex justify-center'>
-        <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[30px]'>
+        <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[30px] pb-[100px]'>
+
+{profileData?._id == userData._id && 
+<div className='w-[90%] max-w-[500px] h-[80px] mt-4 bg-[white] rounded-full flex justify-center items-center gap-[10px]'>
+
+            <div className={`${PostType == "allPost" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full
+                 hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setPostType("allPost")}>Post</div>
+
+            <div className={`${PostType == "Saved" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full
+                 hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setPostType("Saved")}>Saved</div>
+          </div>}
+          
 
           <Nav />
-        </div>
+{profileData?._id == userData._id && <> {PostType=="allPost" && postData.map((post, index) => (
+            post.author?._id == profileData?._id && <Post post={post} key={index} />
+          ))}
+
+          {PostType=="Saved" && userData.saved.map((post, index) => (
+            userData.saved.includes(post._id) &&  <Post post={post} key={index} />
+          ))}
+
+          </>
+}
+
+{profileData?._id != userData._id && postData.map((post, index) => (
+            post.author?._id == profileData?._id && <Post post={post} key={index} />
+          ))
+}
+</div>
 
       </div>
     </div>

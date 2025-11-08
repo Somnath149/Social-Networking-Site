@@ -15,7 +15,7 @@ function Nav() {
             <div><FiHome className='text-[white] w-[25px] h-[25px] cursor-pointer' onClick={() => navigate(`/`)}/></div>
             <div><FaSearch className='text-[#ffffff] w-[25px] h-[25px] cursor-pointer' /></div>
             <div><FaPlusSquare className='text-[white] w-[25px] h-[25px] cursor-pointer' onClick={() => navigate(`/upload`)}/></div>
-            <div><FaFilm className='text-[white] w-[25px] h-[25px] cursor-pointer' /></div>
+            <div><FaFilm className='text-[white] w-[25px] h-[25px] cursor-pointer' onClick={() => navigate(`/loops`)}/></div>
             <div>
                 <div className='w-[40px] h-[40px] border-2 border-black rounded-full cursor-pointer overflow-hidden'
                     onClick={() => navigate(`/profile/${userData.userName}`)}>

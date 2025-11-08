@@ -14,6 +14,11 @@ import { useDispatch } from 'react-redux'
 import EditProfile from './pages/EditProfile'
 import Upload from './pages/Upload'
 import getAllpost from './hooks/getAllpost'
+
+import getAllLoops from './hooks/getAllLoops'
+import axios from "axios";
+import Loops from './pages/Loops'
+
 export const serverUrl = "http://localhost:8000"
 function App() {
     const dispatch = useDispatch()
@@ -39,6 +44,7 @@ function App() {
   getCurrentUser()
   getSuggestedUser()
   getAllpost()
+  getAllLoops()
   const { userData } = useSelector(state => state.user)
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -52,6 +58,7 @@ function App() {
             <Route path='/profile/:userName' element={userData ? <Profile /> : <Navigate to={"/signin"} />} />
             <Route path='/editprofile' element={userData ? <EditProfile /> : <Navigate to={"/signin"} />} />
             <Route path='/upload' element={userData ? <Upload /> : <Navigate to={"/signin"} />} />
+            <Route path='/loops' element={userData ? <Loops /> : <Navigate to={"/signin"} />} />
           </Routes>
 
         {/* </animated.div>
