@@ -49,7 +49,7 @@ export const like= async (req,res) => {
             loop.likes.push(req.userId)
         }
         await loop.save()
-        loop.populate("author","name userName profileImage")
+        await loop.populate("author","name userName profileImage")
         return res.status(200).json(loop)
     } catch (error) {
         return res.status(500).json({message:`like loop error ${error}`})
@@ -69,8 +69,8 @@ export const comment= async (req,res) => {
             message
         })
         await loop.save()
-        loop.populate("author", "name userName profileImage")
-        loop.populate("comments.author")
+        await loop.populate("author", "name userName profileImage")
+        await loop.populate("comments.author")
         return res.status(200).json(loop)
     } catch (error) {
         return res.status(500).json({message:`comments loop error ${error}`})
