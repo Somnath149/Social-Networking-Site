@@ -10,6 +10,7 @@ import Nav from '../component/Nav'
 import dp1 from "../assets/dp1.jpeg"
 import FollowButton from '../component/FollowButton'
 import Post from '../component/Post'
+import { setSelectedUser } from '../redux/messageSlice'
 
 function Profile() {
   const [PostType, setPostType] = useState("allPost")
@@ -116,7 +117,9 @@ function Profile() {
           <>
             <FollowButton tailwind={'px-[10px] min-w-[150px] py-[5px] h-940px] bg-[white] cursor-pointer rounded-2xl'}
               targetUserId={profileData?._id} onFollowChange={handleProfile} />
-            <button className='px-[10px] min-w-[150px] py-[5px] h-940px] bg-[white] cursor-pointer rounded-2xl'>Message</button>
+            <button className='px-[10px] min-w-[150px] py-[5px] h-940px] bg-[white] cursor-pointer rounded-2xl'
+             onClick={()=>{dispatch(setSelectedUser(profileData))
+              navigate("/messageArea")}}>Message</button>
           </>
         }
       </div>

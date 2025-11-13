@@ -20,6 +20,8 @@ import axios from "axios";
 import Loops from './pages/Loops'
 import Story from './pages/Story'
 import getAllStories from './hooks/getAllStories'
+import Messages from './pages/Messages'
+import MessageArea from './pages/MessageArea'
 
 export const serverUrl = "http://localhost:8000"
 function App() {
@@ -63,6 +65,8 @@ function App() {
             <Route path='/editprofile' element={userData ? <EditProfile /> : <Navigate to={"/signin"} />} />
             <Route path='/upload' element={userData ? <Upload /> : <Navigate to={"/signin"} />} />
             <Route path='/loops' element={userData ? <Loops /> : <Navigate to={"/signin"} />} />
+            <Route path='/messages' element={userData ? <Messages /> : <Navigate to={"/signin"} />} />
+            <Route path='/messageArea' element={userData ? <MessageArea /> : <Navigate to={"/signin"} />} />
           </Routes>
 
         {/* </animated.div>

@@ -6,16 +6,20 @@ import Nav from './Nav';
 import Post from './Post';
 import { useSelector } from 'react-redux';
 import StoryDp from './StoryDp';
+import {BiMessageAltDetail} from "react-icons/bi";
+import { useNavigate } from 'react-router-dom';
 function Feed() {
   const { postData } = useSelector(state => state.post)
   const { userData } = useSelector(state => state.user)
   const { storyList, currentUserStory } = useSelector(state => state.story)
+  const navigate = useNavigate()
   return (
     <div className='lg:w-[50%] w-full bg-black min-h-[100vh] lg:h-[100vh] relative lg:overflow-y-auto'>
       <div className='w-[full] h-[100px] flex items-center justify-between p-[20px] lg:hidden'>
         <img src={logo} alt="" className='w-[40px]' />
-        <div>
+        <div className='flex items-center gap-[10px]'>
           <FaRegHeart className='text-[white] w-[25px] h-[25px]' />
+          <BiMessageAltDetail className='text-[white] w-[25px] h-[25px]' onClick={()=> navigate("/messages")}/>
         </div>
       </div>
 

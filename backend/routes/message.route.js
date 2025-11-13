@@ -5,8 +5,8 @@ import { getAllMessage, getPrevUserChats, sendMessage } from "../controllers/mes
 
 const messageRouter =express.Router()
 
-messageRouter.post("/send/:receiverId/",isAuth,upload.single("image"),sendMessage)
-messageRouter.get("/getAll/:receiverId/",isAuth,getAllMessage)
+messageRouter.post("/send/:receiverId",isAuth,upload.single("image"),sendMessage)
+messageRouter.get("/getAll/:receiverId",isAuth,getAllMessage)
 messageRouter.get("/prevChats",isAuth,getPrevUserChats)
 
 export default messageRouter
