@@ -96,8 +96,9 @@ function Upload() {
     }
 
     return (
-        <div className='w-full h-[100vh] bg-black flex flex-col items-center'>
-            <div className='w-full h-[80px] flex fixed left-[20px] items-center gap-[20px] px-[20px]'>
+        <div className='w-full h-[100vh] bg-black flex flex-col items-center pt-[80px]'>  {/* ye line se click wala error solve hua -> pt-[80px] */}
+            <div className='w-full h-[80px] flex fixed top-0 left-0 items-center gap-[20px] px-[20px] z-[50] bg-black'> 
+                {/* ye line se click wala error solve hua -> top-0 left-0, z-[50] bg-black*/} 
                 <MdOutlineKeyboardBackspace onClick={() => navigate(`/`)}
                     className='text-white cursor-pointer w-[25px] h-[25px]' />
                 <h1 className='text-white text-[20px] font-semibold'>Upload</h1>
