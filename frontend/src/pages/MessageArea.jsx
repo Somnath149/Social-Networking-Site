@@ -101,7 +101,7 @@ useEffect(() => {
 
             </div>
 
-            <div className='w-full h-[80%] pt-[100px] pb-[120px] lg:pb-[150px] px-[40px] flex flex-col gap-[50px] overflow-auto bg-black'>
+            <div className='w-full h-[80%] pt-[100px] px-[40px] flex flex-col gap-[50px] overflow-auto bg-black'>
                 {messages && messages.map((mess,index)=>(
                     mess.sender == userData._id? <SenderMessage message={mess}/> : <ReceiverMessage message={mess}/>
                 ))}
