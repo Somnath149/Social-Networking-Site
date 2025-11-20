@@ -5,14 +5,15 @@ const conversationSchema = new mongoose.Schema({
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
-        }],
+        }
+    ],
     messages: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message"
         }
     ]
-}, { timeseries: true })
+}, { timestamps: true }); // FIXED typo
 
-const Conversation = mongoose.model("Conversation", conversationSchema)
-export default Conversation
+const Conversation = mongoose.model("Conversation", conversationSchema);
+export default Conversation;
