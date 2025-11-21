@@ -2,6 +2,8 @@ import sendMail from "../config/mail.js"
 import genToken from "../config/token.js"
 import User from "../models/user.model.js"
 import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+
 export const signUp = async (req, res) => {
     try {
         const { name, email, password, userName } = req.body
@@ -139,5 +141,28 @@ export const resetPassword = async (req, res) => {
     }
     catch (error) {
         return res.status(500).json({ message: `send otp error ${error}` })
+    }
+}
+
+//// ⭐⭐⭐ ADDED FIX: /me ROUTE CONTROLLER ⭐⭐⭐ ////
+export const getMe = async (req, res) => {
+    try {
+        const token = req.cookies?.token;
+
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(decoded.userId).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({ message: `getMe error: ${error.message}` });
     }
 }

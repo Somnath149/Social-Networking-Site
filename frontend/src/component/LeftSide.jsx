@@ -1,7 +1,7 @@
 import React from 'react'
 import axios from 'axios'
 import { FaRegHeart } from "react-icons/fa6";
-import logo from "../assets/logo.png"
+import psync from "../assets/psync.png"
 import dp from "../assets/dp.png"
 import { useDispatch, useSelector } from 'react-redux';
 import { serverUrl } from '../App';
@@ -22,7 +22,7 @@ function LeftSide() {
     return (
         <div className='w-[25%] hidden lg:block min-h-[100vh] bg-[black] border-r-2 border-gray-900'>
             <div className='w-[full] h-[100px] flex items-center justify-between p-[20px]'>
-                <img src={logo} alt="" className='w-[40px]' />
+                <img src={psync} alt="" className='w-[100px]' />
                 <div>
                     <FaRegHeart className='text-[white] w-[25px] h-[25px]' />
                 </div>

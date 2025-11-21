@@ -12,7 +12,7 @@ function Loops() {
             <div className='w-full h-[80px] flex fixed left-[20px] top-[20px] items-center gap-[20px] px-[20px] z-[100]'>
                 <MdOutlineKeyboardBackspace onClick={() => navigate(`/`)}
                     className='text-white cursor-pointer w-[25px] h-[25px]' />
-                <h1 className='text-white text-[20px] font-semibold'>Loops</h1>
+                <h1 className='text-white text-[20px] font-semibold'>Reels</h1>
             </div>
 
             <div className='h-[100vh] overflow-y-scroll snap-y snap-mandatory scrollbar-hide'>
