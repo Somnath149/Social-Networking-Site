@@ -4,10 +4,10 @@ const userSlice = createSlice({
     name: "user",
     initialState: {
         userData: null,
-        suggestedUser: null,
+        suggestedUser: [],
         profileData: null,
         following: [],
-        toggleFollow:[]
+        toggleFollow: []
     },
     reducers: {
         setUserData: (state, action) => {
@@ -26,11 +26,11 @@ const userSlice = createSlice({
             state.following = action.payload
             console.log("Inside reducer - Following data:", action.payload);
         },
-        toggleFollow:(state, action)=>{
+        toggleFollow: (state, action) => {
             const targetUserId = action.payload
-            if(state.following.includes(targetUserId)){
-                state.following = state.following.filter(id => id != targetUserId)
-            }else{
+            if (state.following.includes(targetUserId)) {
+                state.following = state.following.filter(id => id !== targetUserId)
+            } else {
                 state.following.push(targetUserId)
             }
         }
