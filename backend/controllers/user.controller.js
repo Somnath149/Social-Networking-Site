@@ -17,8 +17,6 @@ export const getCurrentUser = async (req, res) => {
     }
 }
 
-
-
 export const suggestedUsers = async (req, res) => {
     try {
         const users = await User.find({
@@ -68,7 +66,7 @@ export const getProfile = async (req, res) => {
         const user = await User.findOne({ userName }).select("-password").populate("posts loops followers following")
 
         if (!user) {
-            return res.status(400).json({ message: "usergrgr not found" })
+            return res.status(400).json({ message: "user not found" })
         }
         return res.status(200).json(user)
     } catch (error) {
@@ -82,11 +80,11 @@ export const follow = async (req, res) => {
         const targetUserId = req.params.targetUserId
         
         if (!targetUserId) {
-            return res.status(400).json({ message: "targetuser not found" })
+            return res.status(400).json({ message: "target user not found" })
         }
 
         if(currentUserId == targetUserId){
-            return res.status(400).json({ message: "you cannot follow yourself not found" })
+            return res.status(400).json({ message: "you cannot follow yourself" })
         }
 
         const currentUser = await User.findById(currentUserId)
@@ -110,7 +108,7 @@ export const follow = async (req, res) => {
             await currentUser.save()
             await targetUser.save()
              return res.status(200).json({
-                following:false,
+                following:true,
                 message:"follow successfully"
              })
         }
@@ -119,4 +117,3 @@ export const follow = async (req, res) => {
         return res.status(400).json({ message: `follow error :${error}` })
     }
 }
-

@@ -21,16 +21,19 @@ function LoopCard({ loop, onProfileClick }) {
     const { userData } = useSelector(state => state.user)
     const { loopData } = useSelector(state => state.loop)
 
+    // Video progress update
     const HandleTimeUpdate = () => {
         const video = videoRef.current
-        if (video) {
+        if (video?.duration) {
             const percent = (video.currentTime / video.duration) * 100
             setProgress(percent)
         }
     }
 
+    // Toggle play/pause on click
     const handleClick = () => {
         const video = videoRef.current
+        if (!video) return
         if (isPlaying) {
             video.pause()
             setIsPlaying(false)
@@ -40,6 +43,7 @@ function LoopCard({ loop, onProfileClick }) {
         }
     }
 
+    // Handle outside click for comment box
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (commentRef.current && !commentRef.current.contains(event.target)) {
@@ -52,23 +56,33 @@ function LoopCard({ loop, onProfileClick }) {
         } else {
             document.removeEventListener("mousedown", handleClickOutside)
         }
+
+        return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [showComment])
 
+    // Intersection Observer to auto-play/pause video
     useEffect(() => {
         const observer = new IntersectionObserver(([entry]) => {
             const video = videoRef.current
+            if (!video) return  // <-- Safety check added
+
             if (entry.isIntersecting) {
-                video.play()
+                video.play().catch(() => {}) // handle autoplay errors
                 setIsPlaying(true)
             } else {
                 video.pause()
                 setIsPlaying(false)
             }
         }, { threshold: 0.6 })
+
         if (videoRef.current) observer.observe(videoRef.current)
-        return () => { if (videoRef.current) observer.unobserve(videoRef.current) }
+
+        return () => {
+            if (videoRef.current) observer.unobserve(videoRef.current)
+        }
     }, [])
 
+    // Handle like
     const handleLike = async () => {
         try {
             const result = await axios.get(`${serverUrl}/api/loop/like/${loop._id}`, { withCredentials: true })
@@ -78,13 +92,16 @@ function LoopCard({ loop, onProfileClick }) {
         } catch (error) { console.error("Like failed:", error) }
     }
 
+    // Handle like on double click
     const handleLikeOnDoubleClick = () => {
         setShowHeart(true)
         setTimeout(() => setShowHeart(false), 600)
         if (!loop.likes?.includes(userData._id)) handleLike()
     }
 
+    // Handle comment
     const handleComment = async () => {
+        if (!message.trim()) return
         try {
             const result = await axios.post(`${serverUrl}/api/loop/comment/${loop._id}`, { message }, { withCredentials: true })
             const updatedLoop = result.data
