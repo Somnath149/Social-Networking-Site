@@ -56,7 +56,11 @@ function Profile() {
       {/* Profile info */}
       <div className='w-full h-[150px] flex items-start gap-[20px] lg:gap-[50px] pt-[20px] px-[10px] justify-center'>
         <div className='w-[80px] h-[80px] md:w-[140px] md:h-[140px] border-2 border-black rounded-full overflow-hidden'>
-          <img src={profileData?.profileImage || dp1} alt="" className='w-full object-cover' />
+          <img 
+            src={profileData?.profileImage || dp1} 
+            alt="" 
+            className='w-full h-full object-cover' // ✅ Perfect circle
+          />
         </div>
         <div>
           <div className='font-semibold text-[22px] text-white'>{profileData?.name}</div>
@@ -89,10 +93,17 @@ function Profile() {
           <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl' onClick={() => navigate("/editprofile")}>Edit Profile</button>
           :
           <>
-            <FollowButton tailwind='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
-              targetUserId={profileData?._id} onFollowChange={handleProfile} />
-            <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
-              onClick={()=>{dispatch(setSelectedUser(profileData)); navigate("/messageArea")}}>Message</button>
+            <FollowButton 
+              tailwind='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
+              targetUserId={profileData?._id} 
+              onFollowChange={handleProfile} 
+            />
+            <button 
+              className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
+              onClick={()=>{dispatch(setSelectedUser(profileData)); navigate("/messageArea")}}
+            >
+              Message
+            </button>
           </>
         }
       </div>
