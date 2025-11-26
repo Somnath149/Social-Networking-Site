@@ -16,21 +16,21 @@ function Upload() {
     const { postData } = useSelector(state => state.post)
     const { loopData } = useSelector(state => state.loop)
     const { userData } = useSelector(state => state.user)
-    const [uploadType, setUploadType] = useState("post")
+
+    const [uploadType, setUploadType] = useState("story")
     const [frontendMedia, setFrontendMedia] = useState("")
     const [backendMedia, setBackendMedia] = useState("")
     const [mediaType, setMediaType] = useState("")
     const [caption, setCaption] = useState("")
     const [loading, setLoading] = useState(false)
+
     const mediaInput = useRef()
 
     const handleMedia = (e) => {
         const file = e.target.files[0]
-        if (file.type.includes("image")) {
-            setMediaType("image")
-        } else {
-            setMediaType("video")
-        }
+        if (!file) return
+        if (file.type.includes("image")) setMediaType("image")
+        else setMediaType("video")
         setBackendMedia(file)
         setFrontendMedia(URL.createObjectURL(file))
     }
@@ -43,8 +43,7 @@ function Upload() {
             formData.append("mediaType", mediaType)
             formData.append("media", backendMedia)
             const result = await axios.post(`${serverUrl}/api/post/upload`, formData, { withCredentials: true })
-            const newPost = result.data.post
-            dispatch(setPostData([newPost]))
+            dispatch(setPostData([result.data.post]))
             navigate("/")
         } catch (error) {
             console.log(error)
@@ -76,7 +75,7 @@ function Upload() {
             formData.append("caption", caption)
             formData.append("media", backendMedia)
             const result = await axios.post(`${serverUrl}/api/loop/upload`, formData, { withCredentials: true })
-            dispatch(setLoopData([...loopData, result.data])) // corrected from formData to result.data
+            dispatch(setLoopData([...loopData, result.data]))
             navigate("/")
         } catch (error) {
             console.log(error)
@@ -85,7 +84,7 @@ function Upload() {
         }
     }
 
-    const handleUpload = async () => {
+    const handleUpload = () => {
         if (uploadType === "post") uploadPost()
         else if (uploadType === "story") uploadStory()
         else uploadReel()
@@ -100,15 +99,25 @@ function Upload() {
             </div>
 
             <div className='w-[90%] max-w-[600px] h-[80px] mt-4 bg-[white] rounded-full flex justify-around items-center gap-[10px]'>
+
                 <div className={`${uploadType === "post" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setUploadType("post")}>Post</div>
+
                 <div className={`${uploadType === "story" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setUploadType("story")}>Story</div>
+
                 <div className={`${uploadType === "reel" ? "bg-black text-white shadow-2xl shadow-black" : ""} w-[28%] h-[80%] flex justify-center items-center text-[19px] font-semibold hover:bg-black rounded-full hover:text-white cursor-pointer hover:shadow-2xl hover:shadow-black`} onClick={() => setUploadType("reel")}>Reel</div>
+
             </div>
 
             {!frontendMedia && 
                 <div className='w-[80%] max-w-[500px] h-[250px] bg-[#0e1316] border-gray-800 border-2 flex flex-col items-center justify-center gap-[8px] mt-[15vh] rounded-2xl cursor-pointer hover:bg-[#353a3d]'
                     onClick={() => mediaInput.current.click()}>
-                    <input type="file" accept={uploadType === "reel" ? "video/*" : ""} hidden ref={mediaInput} onChange={handleMedia} />
+                    <input 
+                        type="file" 
+                        accept={uploadType === "reel" ? "video/*" : "image/*"} 
+                        hidden 
+                        ref={mediaInput} 
+                        onChange={handleMedia} 
+                    />
                     <div><FaPlusSquare className='text-[white] w-[25px] h-[25px] cursor-pointer' /></div>
                     <div className='text-white text-[19px] font-semibold'>Upload {uploadType}</div>
                 </div>
@@ -116,6 +125,7 @@ function Upload() {
 
             {frontendMedia &&
                 <div className='w-[80%] max-w-[500px] h-[250px] flex flex-col items-center justify-center mt-[15vh]'>
+
                     {mediaType === "image" && 
                         <div className='w-[80%] max-w-[500px] h-[250px] flex flex-col items-center justify-center mt-[5vh]'>
                             <img src={frontendMedia} alt="" className='h-[60%] rounded-2xl' />
@@ -131,6 +141,7 @@ function Upload() {
                                 placeholder='write caption' onChange={(e) => setCaption(e.target.value)} value={caption} />}
                         </div>
                     }
+
                 </div>
             }
 

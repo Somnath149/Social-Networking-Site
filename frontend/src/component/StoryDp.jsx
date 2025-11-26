@@ -15,13 +15,13 @@ function StoryDp({ profileImage, userName, story }) {
     const [viewed, setViewed] = useState(false)
 
     useEffect(() => {
-      if(story?.viewers?.some((viewer)=> 
-        viewer?._id?.toString() === userData._id.toString() || viewer?.toString() === userData._id.toString()
-      )){
-        setViewed(true)
-      } else {
-        setViewed(false)
-      }
+        if(story?.viewers?.some((viewer) => 
+            viewer?._id?.toString() === userData._id.toString() || viewer?.toString() === userData._id.toString()
+        )){
+            setViewed(true)
+        } else {
+            setViewed(false)
+        }
     }, [story, userData, storyData, storyList])
     
     const handleViewers = async () => {
@@ -35,25 +35,35 @@ function StoryDp({ profileImage, userName, story }) {
     }
 
     const handleClick = () => {
-        if (!story && userName === "Your Story") {
-            navigate("/upload")
-        } else {
-            handleViewers()
-            navigate(`/story/${userName === "Your Story" ? userData?.userName : userName}`)
+        // Redirect to upload if no story exists
+        if (!story || !story._id) {
+            navigate("/upload?autoOpen=true")
+            return
         }
+
+        // Otherwise, view story
+        handleViewers()
+        navigate(`/story/${userName === userData.userName ? userData.userName : userName}`)
     }
+
+    // Only show gradient if story exists
+    const borderClass = story && story._id 
+        ? (!viewed ? "bg-gradient-to-b from-blue-500 to-blue-950" : "bg-gradient-to-b from-gray-500 to-black-800")
+        : "border-2 border-gray-700" // plain border if no story
 
     return (
         <div className='flex flex-col w-[80px]'>
-            <div className={`w-[80px] h-[80px] 
-                ${!story ? null : !viewed ? "bg-gradient-to-b from-blue-500 to-blue-950" : "bg-gradient-to-b from-gray-500 to-black-800"}
-                rounded-full flex justify-center items-center relative`} 
+            <div className={`w-[80px] h-[80px] rounded-full flex justify-center items-center relative ${borderClass}`} 
                 onClick={handleClick}
             >
-                <div className='w-[70px] h-[70px] border-1 border-black rounded-full cursor-pointer overflow-hidden'>
-                    <img src={profileImage || dp1} alt="" className='w-full h-full object-cover' /> {/* ✅ h-full added */}
-                    {!story && userName === "Your Story" && (
-                        <FiPlusCircle className='text-black absolute bottom-[8px] bg-white right-[10px] rounded-full w-[22px] h-[22px]' />
+                <div className='w-[70px] h-[70px] rounded-full cursor-pointer overflow-hidden relative'>
+                    <img src={profileImage || dp1} alt="" className='w-full h-full object-cover' />
+
+                    {/* Show + icon if no story exists and this is the current user */}
+                    {(!story || !story._id) && userName === userData.userName && (
+                        <FiPlusCircle 
+                            className='absolute bottom-0 right-0 w-[22px] h-[22px] text-black bg-white rounded-full p-[2px] z-10' 
+                        />
                     )}
                 </div>
             </div>
