@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-
     userName: {
         type: String,
         required: true,
@@ -50,7 +49,7 @@ const userSchema = new mongoose.Schema({
     saved: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+            ref: "Post"  // ✅ corrected ref from User to Post
         }
     ],
     loops: [
@@ -63,20 +62,16 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Story",
     },
-
     resetOtp: {
         type: String
     },
-
     otpExpires: {
         type: String
     },
-
     isOtpVerified: {
         type: Boolean,
         default: false
     }
-
 }, { timestamps: true })
 
 const User = mongoose.model("User", userSchema)

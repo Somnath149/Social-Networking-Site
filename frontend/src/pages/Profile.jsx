@@ -3,21 +3,20 @@ import React, { useEffect, useState } from 'react'
 import { serverUrl } from '../App'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { setProfileData, setUserData } from '../redux/userSlice'
+import { setProfileData } from '../redux/userSlice'
 import { MdOutlineKeyboardBackspace } from "react-icons/md"
 import FollowersFollowingModal from '../component/FollowersFollowingModal'
-
-import Nav from '../component/Nav'
 import dp1 from "../assets/dp1.jpeg"
 import FollowButton from '../component/FollowButton'
 import Post from '../component/Post'
-import { setSelectedUser } from '../redux/messageSlice'
+import { FaPlus } from "react-icons/fa"
 
 function Profile() {
-  const [PostType, setPostType] = useState("allPost")
+  const [activeTab, setActiveTab] = useState("posts")
+  const [savedPosts, setSavedPosts] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState("followers")
-  
+
   const navigate = useNavigate()
   const { userName } = useParams()
   const dispatch = useDispatch()
@@ -28,22 +27,31 @@ function Profile() {
     try {
       const result = await axios.get(`${serverUrl}/api/user/getProfile/${userName}`, { withCredentials: true })
       dispatch(setProfileData(result.data))
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) { console.log(error) }
   }
 
-  useEffect(() => { handleProfile() }, [userName, dispatch])
+  const fetchSavedPosts = async () => {
+    try {
+      const res = await axios.get(`${serverUrl}/api/post/savedPosts`, { withCredentials: true })
+      setSavedPosts(res.data)
+    } catch (error) { console.log(error) }
+  }
+
+  useEffect(() => {
+    handleProfile()
+    fetchSavedPosts()
+  }, [userName])
 
   const handleLogOut = async () => {
     try {
       await axios.get(`${serverUrl}/api/auth/signout`, { withCredentials: true })
-      dispatch(setUserData(null))
+      dispatch(setProfileData(null))
     } catch (error) { console.log(error) }
   }
 
   return (
     <div className='w-full h-screen overflow-y-auto bg-black'>
+
       {/* Top bar */}
       <div className='w-full h-[80px] flex justify-between items-center px-[30px] text-white'>
         <div className='cursor-pointer' onClick={() => navigate("/")}>
@@ -55,16 +63,13 @@ function Profile() {
 
       {/* Profile info */}
       <div className='w-full h-[150px] flex items-start gap-[20px] lg:gap-[50px] pt-[20px] px-[10px] justify-center'>
-        <div className='w-[80px] h-[80px] md:w-[140px] md:h-[140px] border-2 border-black rounded-full overflow-hidden'>
-          <img 
-            src={profileData?.profileImage || dp1} 
-            alt="" 
-            className='w-full h-full object-cover' // ✅ Perfect circle
-          />
+        <div className='w-[80px] h-[80px] md:w-[140px] md:h-[140px] border-2 border-black rounded-full overflow-hidden cursor-pointer'
+             onClick={() => navigate("/upload?tab=story")}>
+          <img src={profileData?.profileImage || dp1} alt="" className='w-full h-full object-cover' />
         </div>
         <div>
           <div className='font-semibold text-[22px] text-white'>{profileData?.name}</div>
-          <div className='text-[17px] text-[#ffffffe8]'>{profileData?.profession || "new User"}</div>
+          <div className='text-[17px] text-[#ffffffe8]'>{profileData?.profession || "New User"}</div>
           <div className='text-[17px] text-[#ffffffe8]'>{profileData?.bio}</div>
         </div>
       </div>
@@ -87,42 +92,82 @@ function Profile() {
         </div>
       </div>
 
-      {/* Follow / Message Buttons */}
+      {/* Buttons */}
       <div className='w-full h-[80px] flex justify-center items-center gap-[20px]'>
-        {profileData?._id === userData._id ? 
+        {profileData?._id === userData._id ?
           <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl' onClick={() => navigate("/editprofile")}>Edit Profile</button>
           :
           <>
-            <FollowButton 
+            <FollowButton
               tailwind='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
-              targetUserId={profileData?._id} 
-              onFollowChange={handleProfile} 
+              targetUserId={profileData?._id}
+              onFollowChange={handleProfile}
             />
-            <button 
-              className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
-              onClick={()=>{dispatch(setSelectedUser(profileData)); navigate("/messageArea")}}
-            >
+            <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'>
               Message
             </button>
           </>
         }
       </div>
 
-      {/* Posts */}
-      <div className='w-full min-h-[100vh] flex justify-center'>
-        <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[30px] pb-[100px]'>
-          {PostType === "allPost" && postData.map((post, index) => (
-            post.author?._id === profileData?._id && <Post post={post} key={index} />
+      {/* Tabs */}
+      <div className='flex justify-center gap-10 mt-6 text-white'>
+        <button className={`font-semibold ${activeTab === "posts" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("posts")}>Posts</button>
+        <button className={`font-semibold ${activeTab === "saved" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("saved")}>Saved</button>
+      </div>
+
+      {/* Posts / Saved */}
+      <div className='w-full min-h-[50vh] flex justify-center mt-4'>
+        <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[16px] pb-[100px]'>
+
+          {/* No Posts Yet */}
+          {activeTab === "posts" &&
+            postData.filter(p => p.author?._id === profileData?._id).length === 0 && (
+              <div className='flex flex-col items-center mt-8'>
+                <p className='text-gray-500 text-lg mb-3'>No Posts Yet</p>
+                <button
+                  onClick={() => navigate("/upload?tab=post")}
+                  className="w-[60px] h-[60px] rounded-full bg-[#1DA1F2] text-white flex items-center justify-center shadow-xl text-[28px] font-bold"
+                >
+                  <FaPlus />
+                </button>
+              </div>
+            )
+          }
+
+          {/* Posts */}
+          {activeTab === "posts" &&
+            postData
+              .filter(post => post.author?._id === profileData?._id)
+              .map((post, index) => (
+                <div key={index} onClick={() => navigate(`/upload?tab=reel`)}>
+                  <Post post={post} />
+                </div>
+              ))
+          }
+
+          {/* Saved empty */}
+          {activeTab === "saved" && savedPosts.length === 0 && (
+            <h2 className='text-gray-500 text-lg my-10'>No saved posts</h2>
+          )}
+
+          {/* Saved posts */}
+          {activeTab === "saved" && savedPosts.map((post, index) => (
+            <Post post={post} key={index} />
           ))}
+
         </div>
       </div>
 
-      {/* Followers / Following Modal */}
-      {showModal && <FollowersFollowingModal
-        type={modalType}
-        users={modalType === "followers" ? profileData?.followers : profileData?.following}
-        onClose={() => setShowModal(false)}
-      />}
+      {/* Modal */}
+      {showModal && (
+        <FollowersFollowingModal
+          type={modalType}
+          users={modalType === "followers" ? profileData?.followers : profileData?.following}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
     </div>
   )
 }

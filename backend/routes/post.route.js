@@ -1,22 +1,32 @@
-import express from "express"
-import { signIn, signOut, signUp } from "../controllers/auth.controller.js"
-import { editProfile, getCurrentUser, getProfile, suggestedUsers } from "../controllers/user.controller.js"
-import isAuth from "../middlewares/isAuth.js"
-import { upload } from "../middlewares/multer.js"
+import express from "express";
+import isAuth from "../middlewares/isAuth.js";
+import { upload } from "../middlewares/multer.js";
+import User from "../models/user.model.js";
 
-// ⭐ DELETE COMMENT ko yahan import kiya ✔
-import { comment, getAllPosts, like, saved, uploadPost, deletePost, deleteComment } from "../controllers/post.controller.js"
+import { comment, getAllPosts, like, saved, uploadPost, deletePost, deleteComment } from "../controllers/post.controller.js";
 
-const postRouter = express.Router()
+const postRouter = express.Router();
 
-postRouter.post("/upload", isAuth, upload.single("media"), uploadPost)
-postRouter.get("/getAll", isAuth, getAllPosts)
-postRouter.get("/saved/:postId", isAuth, saved)
-postRouter.get("/like/:postId", isAuth, like)
-postRouter.post("/comment/:postId", isAuth, comment)
-postRouter.delete("/delete/:postId", isAuth, deletePost)
+postRouter.post("/upload", isAuth, upload.single("media"), uploadPost);
+postRouter.get("/getAll", isAuth, getAllPosts);
+postRouter.get("/saved/:postId", isAuth, saved);
+postRouter.get("/like/:postId", isAuth, like);
+postRouter.post("/comment/:postId", isAuth, comment);
+postRouter.delete("/delete/:postId", isAuth, deletePost);
+postRouter.delete("/comment/:postId/:commentId", isAuth, deleteComment);
 
-// ⭐ NEW — Comment delete route ✔
-postRouter.delete("/comment/:postId/:commentId", isAuth, deleteComment)
+// ✅ Saved posts for frontend Profile tab
+postRouter.get("/savedPosts", isAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate({
+      path: "saved",
+      populate: { path: "author", select: "name userName profileImage" },
+    });
 
-export default postRouter
+    res.status(200).json(user.saved);
+  } catch (error) {
+    res.status(500).json({ message: `Error fetching saved posts: ${error}` });
+  }
+});
+
+export default postRouter;
