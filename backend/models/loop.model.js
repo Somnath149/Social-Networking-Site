@@ -1,5 +1,19 @@
 import mongoose from "mongoose";
 
+// Comment sub-schema
+const commentSchema = new mongoose.Schema({
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    message: {
+        type: String,
+        required: true
+    }
+}, { _id: true }); // important: each comment has unique _id
+
+// Loop schema
 const loopSchema = new mongoose.Schema({
     author: {
         type: mongoose.Schema.Types.ObjectId,
@@ -16,17 +30,13 @@ const loopSchema = new mongoose.Schema({
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+        default: []
     }],
-    comments: [{
-        author: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
-        message:{
-            type:String
-        }
-    }]
-}, { timestamps: true })
+    comments: {
+        type: [commentSchema],
+        default: []
+    }
+}, { timestamps: true });
 
-const Loop = mongoose.model("Loop", loopSchema)
-export default Loop
+const Loop = mongoose.model("Loop", loopSchema);
+export default Loop;
