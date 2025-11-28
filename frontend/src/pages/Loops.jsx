@@ -25,6 +25,7 @@ function Loops() {
                     <div className='h-screen snap-start' key={loop._id || index}>
                         <LoopCard 
                             loop={loop} 
+                            isFirst={index === 0}   // ✅ Pehli reel ke liye audio unmute
                             onProfileClick={(userName) => navigate(`/profile/${userName}`)}
                         />
                     </div>

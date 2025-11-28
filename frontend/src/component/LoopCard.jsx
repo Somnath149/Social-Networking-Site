@@ -13,7 +13,7 @@ function LoopCard({ loop, onProfileClick }) {
     const commentRef = useRef()
     const dispatch = useDispatch()
     const [isPlaying, setIsPlaying] = useState(true)
-    const [isMuted, setIsMuted] = useState(true)
+    const [isMuted, setIsMuted] = useState(false) // 🔥 Sab reels ka audio active
     const [message, setMessage] = useState("")
     const [showComment, setShowComment] = useState(false)
     const [progress, setProgress] = useState(0)
@@ -38,25 +38,20 @@ function LoopCard({ loop, onProfileClick }) {
             video.pause()
             setIsPlaying(false)
         } else {
-            video.play()
+            video.play().catch(() => {})
             setIsPlaying(true)
         }
     }
 
-    // Handle outside click for comment box
+    // Comment box outside click
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (commentRef.current && !commentRef.current.contains(event.target)) {
                 setShowComment(false)
             }
         }
-
-        if (showComment) {
-            document.addEventListener("mousedown", handleClickOutside)
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-
+        if (showComment) document.addEventListener("mousedown", handleClickOutside)
+        else document.removeEventListener("mousedown", handleClickOutside)
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [showComment])
 
@@ -64,11 +59,11 @@ function LoopCard({ loop, onProfileClick }) {
     useEffect(() => {
         const observer = new IntersectionObserver(([entry]) => {
             const video = videoRef.current
-            if (!video) return  // <-- Safety check added
-
+            if (!video) return
             if (entry.isIntersecting) {
-                video.play().catch(() => {}) // handle autoplay errors
+                video.play().catch(() => {})
                 setIsPlaying(true)
+                video.muted = false // 🔥 Sab reels ka audio on
             } else {
                 video.pause()
                 setIsPlaying(false)
@@ -76,7 +71,6 @@ function LoopCard({ loop, onProfileClick }) {
         }, { threshold: 0.6 })
 
         if (videoRef.current) observer.observe(videoRef.current)
-
         return () => {
             if (videoRef.current) observer.unobserve(videoRef.current)
         }
@@ -92,7 +86,6 @@ function LoopCard({ loop, onProfileClick }) {
         } catch (error) { console.error("Like failed:", error) }
     }
 
-    // Handle like on double click
     const handleLikeOnDoubleClick = () => {
         setShowHeart(true)
         setTimeout(() => setShowHeart(false), 600)
@@ -157,7 +150,12 @@ ${showComment ? "translate-y-0" : "translate-y-[100%]"}`}>
                 onClick={handleClick} onTimeUpdate={HandleTimeUpdate} onDoubleClick={handleLikeOnDoubleClick}></video>
 
             {/* Mute Toggle */}
-            <div className='absolute top-[20px] z-[100] right-[20px]' onClick={() => setIsMuted(prev => !prev)}>
+            <div className='absolute top-[20px] z-[100] right-[20px]' onClick={() => {
+                setIsMuted(prev => {
+                    if(videoRef.current) videoRef.current.muted = !prev
+                    return !prev
+                })
+            }}>
                 {!isMuted ? <FiVolume2 className='w-[20px] h-[20px] text-white font-semibold' /> : <FiVolumeX className='w-[20px] h-[20px] text-white font-semibold' />}
             </div>
 
