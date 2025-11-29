@@ -120,17 +120,21 @@ function Profile() {
       <div className='w-full min-h-[50vh] flex justify-center mt-4'>
         <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[16px] pb-[100px]'>
 
-          {/* No Posts Yet */}
+          {/* No Posts Yet → + icon only on own profile */}
           {activeTab === "posts" &&
             postData.filter(p => p.author?._id === profileData?._id).length === 0 && (
               <div className='flex flex-col items-center mt-8'>
                 <p className='text-gray-500 text-lg mb-3'>No Posts Yet</p>
-                <button
-                  onClick={() => navigate("/upload?tab=post")}
-                  className="w-[60px] h-[60px] rounded-full bg-[#1DA1F2] text-white flex items-center justify-center shadow-xl text-[28px] font-bold"
-                >
-                  <FaPlus />
-                </button>
+
+                {profileData?._id === userData._id && (
+                  <button
+                    onClick={() => navigate("/upload?tab=post")}
+                    className="w-[60px] h-[60px] rounded-full bg-[#1DA1F2] text-white flex items-center justify-center shadow-xl text-[28px] font-bold"
+                  >
+                    <FaPlus />
+                  </button>
+                )}
+
               </div>
             )
           }
