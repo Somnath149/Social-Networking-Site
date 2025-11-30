@@ -12,12 +12,14 @@ function LoopCard({ loop, onProfileClick }) {
     const videoRef = useRef()
     const commentRef = useRef()
     const dispatch = useDispatch()
+
     const [isPlaying, setIsPlaying] = useState(true)
     const [isMuted, setIsMuted] = useState(false)
     const [message, setMessage] = useState("")
-       const [showComment, setShowComment] = useState(false)
+    const [showComment, setShowComment] = useState(false)
     const [progress, setProgress] = useState(0)
     const [showHeart, setShowHeart] = useState(false)
+
     const { userData } = useSelector(state => state.user)
     const { loopData } = useSelector(state => state.loop)
 
@@ -40,8 +42,11 @@ function LoopCard({ loop, onProfileClick }) {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (commentRef.current && !commentRef.current.contains(event.target)) setShowComment(false)
+            if (commentRef.current && !commentRef.current.contains(event.target)) {
+                setShowComment(false)
+            }
         }
+
         if (showComment) document.addEventListener("mousedown", handleClickOutside)
         else document.removeEventListener("mousedown", handleClickOutside)
 
@@ -63,7 +68,9 @@ function LoopCard({ loop, onProfileClick }) {
         }, { threshold: 0.6 })
 
         if (videoRef.current) observer.observe(videoRef.current)
-        return () => { if (videoRef.current) observer.unobserve(videoRef.current) }
+        return () => {
+            if (videoRef.current) observer.unobserve(videoRef.current)
+        }
     }, [])
 
     const handleLike = async () => {
@@ -80,16 +87,23 @@ function LoopCard({ loop, onProfileClick }) {
     const handleLikeOnDoubleClick = () => {
         setShowHeart(true)
         setTimeout(() => setShowHeart(false), 600)
+
         if (!loop.likes?.includes(userData._id)) handleLike()
     }
 
     const handleComment = async () => {
         if (!message.trim()) return
         try {
-            const result = await axios.post(`${serverUrl}/api/loop/comment/${loop._id}`, { message }, { withCredentials: true })
+            const result = await axios.post(
+                `${serverUrl}/api/loop/comment/${loop._id}`,
+                { message },
+                { withCredentials: true }
+            )
+
             const updatedLoop = result.data
             const updatedLoops = loopData.map(p => p._id === loop._id ? updatedLoop : p)
             dispatch(setLoopData(updatedLoops))
+
             setMessage("")
         } catch (error) {
             console.error("Comment failed:", error)
@@ -99,10 +113,13 @@ function LoopCard({ loop, onProfileClick }) {
     const handleDeleteComment = async (commentId) => {
         try {
             await axios.delete(`${serverUrl}/api/loop/comment/${loop._id}/${commentId}`, { withCredentials: true })
+
             const updatedLoops = loopData.map(p => {
-                if (p._id === loop._id) return { ...p, comments: p.comments.filter(c => c._id !== commentId) }
+                if (p._id === loop._id)
+                    return { ...p, comments: p.comments.filter(c => c._id !== commentId) }
                 return p
             })
+
             dispatch(setLoopData(updatedLoops))
         } catch (error) {
             console.error("Delete comment failed:", error)
@@ -157,30 +174,42 @@ function LoopCard({ loop, onProfileClick }) {
             </div>
 
             {/* COMMENTS BOX */}
-            <div ref={commentRef} className={`absolute z-[200] bottom-0 w-full h-[500px] shadow-2xl shadow-black
+            <div
+                ref={commentRef}
+                className={`absolute z-[200] bottom-0 w-full h-[500px] shadow-2xl shadow-black
                 p-[10px] rounded-t-4xl bg-[#0e1718] transform transition-transform duration-500 ease-in-out left-0
-                ${showComment ? "translate-y-0" : "translate-y-[100%]"}`}>
-
+                ${showComment ? "translate-y-0" : "translate-y-[100%]"}`}
+            >
                 <h1 className='text-white text-[20px] text-center font-semibold'>Comments</h1>
 
                 <div className='w-full h-[350px] overflow-y-auto flex flex-col gap-[20px]'>
 
-                    {loop.comments.length === 0 &&
+                    {loop.comments.length === 0 && (
                         <div className='text-center text-white text-[20px] font-semibold mt-[50px]'>
                             No Comments Yet
                         </div>
-                    }
+                    )}
 
                     {loop.comments?.map((com, idx) => (
-                        <div className='w-full flex flex-col gap-[5px] border-b-[1px] border-gray-800 pb-[10px] mt-[10px]' key={idx}>
+                        <div
+                            className='w-full flex flex-col gap-[5px] border-b-[1px] border-gray-800 pb-[10px] mt-[10px]'
+                            key={idx}
+                        >
                             <div className='flex items-center gap-[10px]'>
 
-                                {/* COMMENT USER DP (CORRECTED) */}
-                                <div className='w-[30px] h-[30px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full overflow-hidden'>
+                                {/* CLICKABLE COMMENT USER DP */}
+                                <div
+                                    className='w-[30px] h-[30px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full overflow-hidden cursor-pointer'
+                                    onClick={() => onProfileClick(com.author?.userName)}
+                                >
                                     <img src={com.author?.profileImage || dp} className='w-full h-full object-cover' />
                                 </div>
 
-                                <div className='font-semibold text-white truncate max-w-[120px] md:max-w-[150px]'>
+                                {/* CLICKABLE USERNAME */}
+                                <div
+                                    className='font-semibold text-white truncate max-w-[120px] md:max-w-[150px] cursor-pointer'
+                                    onClick={() => onProfileClick(com.author?.userName)}
+                                >
                                     {com?.author?.userName}
                                 </div>
 
@@ -204,11 +233,13 @@ function LoopCard({ loop, onProfileClick }) {
                         <img src={userData.profileImage || dp} className='w-full h-full object-cover' />
                     </div>
 
-                    <input type="text"
+                    <input
+                        type="text"
                         className='px-[10px] border-b-2 border-b-gray-500 text-white w-[90%] outline-none h-[40px]'
                         onChange={(e) => setMessage(e.target.value)}
                         value={message}
-                        placeholder='write comment...' />
+                        placeholder='write comment...'
+                    />
 
                     {message && (
                         <button onClick={handleComment}>
@@ -217,7 +248,6 @@ function LoopCard({ loop, onProfileClick }) {
                     )}
                 </div>
             </div>
-
 
             {/* VIDEO */}
             <video
@@ -234,7 +264,10 @@ function LoopCard({ loop, onProfileClick }) {
 
             {/* PROGRESS BAR */}
             <div className='absolute bottom-0 w-full h-[3px] bg-gray-900'>
-                <div className='h-full bg-white transition-all duration-200 ease-linear' style={{ width: `${progress}%` }}></div>
+                <div
+                    className='h-full bg-white transition-all duration-200 ease-linear'
+                    style={{ width: `${progress}%` }}
+                ></div>
             </div>
 
             {/* BOTTOM INFO */}
@@ -243,16 +276,19 @@ function LoopCard({ loop, onProfileClick }) {
                 <div className='flex items-center gap-4'>
                     <div
                         className='w-[20px] h-[20px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full overflow-hidden cursor-pointer'
-                        onClick={() => onProfileClick(loop.author.userName)}>
+                        onClick={() => onProfileClick(loop.author.userName)}
+                    >
                         <img src={loop.author?.profileImage || dp} className='w-full h-full object-cover' />
                     </div>
 
-                    <div className='font-semibold truncate text-white max-w-[120px] md:max-w-[150px]'
-                        onClick={() => onProfileClick(loop.author.userName)}>
+                    <div
+                        className='font-semibold truncate text-white max-w-[120px] md:max-w-[150px] cursor-pointer'
+                        onClick={() => onProfileClick(loop.author.userName)}
+                    >
                         {loop?.author?.userName}
                     </div>
 
-                    {/* FOLLOW BUTTON — HIDE IF OWN REEL */}
+                    {/* FOLLOW BUTTON (HIDE IF OWN REEL) */}
                     {loop.author?._id !== userData._id && (
                         <FollowButton
                             targetUserId={loop.author?._id}
@@ -275,13 +311,14 @@ function LoopCard({ loop, onProfileClick }) {
                         <div>{loop.likes.length}</div>
                     </div>
 
-                    {/* COMMENTS BUTTON */}
+                    {/* COMMENT BUTTON */}
                     <div className='flex flex-col items-center cursor-pointer'>
                         <div onClick={() => setShowComment(true)}>
                             <FaRegComment className="w-[25px] h-[25px]" />
                         </div>
                         <div><span>{loop.comments.length}</span></div>
                     </div>
+
                 </div>
             </div>
         </div>

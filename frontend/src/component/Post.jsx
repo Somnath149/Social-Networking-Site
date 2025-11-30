@@ -1,7 +1,14 @@
 import React, { useState } from 'react'
 import dp from "../assets/dp.png"
 import VideoPlayer from './VideoPlayer';
-import { FaHeart, FaRegHeart, FaRegComment, FaRegBookmark, FaBookmark, FaRegPaperPlane } from "react-icons/fa";
+import {
+    FaHeart,
+    FaRegHeart,
+    FaRegComment,
+    FaRegBookmark,
+    FaBookmark,
+    FaRegPaperPlane
+} from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { serverUrl } from '../App';
 import { setPostData } from '../redux/postSlice';
@@ -16,10 +23,13 @@ function Post({ post }) {
     const dispatch = useDispatch();
     const { userData } = useSelector(state => state.user);
     const { postData } = useSelector(state => state.post);
+
     const [showComment, setshowComment] = useState(false);
     const [message, setMessage] = useState("");
+
     const navigate = useNavigate();
 
+    // LIKE
     const handleLike = async () => {
         try {
             const result = await axios.get(`${serverUrl}/api/post/like/${post._id}`, { withCredentials: true });
@@ -33,6 +43,7 @@ function Post({ post }) {
         }
     };
 
+    // COMMENT ADD
     const handleComment = async () => {
         try {
             const result = await axios.post(
@@ -51,20 +62,19 @@ function Post({ post }) {
         }
     };
 
-    // ⭐ FIXED SAVE BUTTON → NO BLANK PAGE NOW
+    // SAVE / UNSAVE
     const handleSaved = async () => {
         try {
-            const res = await axios.get(`${serverUrl}/api/post/saved/${post._id}`, {
+            await axios.get(`${serverUrl}/api/post/saved/${post._id}`, {
                 withCredentials: true,
             });
 
-            // 🔥 toggle id manually in Redux
             let updatedSaved = [...userData.saved];
 
             if (updatedSaved.includes(post._id)) {
-                updatedSaved = updatedSaved.filter(id => id !== post._id);  // unsave
+                updatedSaved = updatedSaved.filter(id => id !== post._id);
             } else {
-                updatedSaved.push(post._id); // save
+                updatedSaved.push(post._id);
             }
 
             dispatch(setUserData({
@@ -77,6 +87,7 @@ function Post({ post }) {
         }
     };
 
+    // POST DELETE
     const handleDelete = async (postId) => {
         try {
             const res = await axios.delete(`${serverUrl}/api/post/delete/${postId}`, { withCredentials: true });
@@ -91,6 +102,7 @@ function Post({ post }) {
         }
     };
 
+    // COMMENT DELETE
     const handleCommentDelete = async (postId, commentId) => {
         try {
             const res = await axios.delete(
@@ -112,25 +124,31 @@ function Post({ post }) {
 
     return (
         <div className='w-[90%] min-h-[450px] pb-[20px] max-w-[500px] flex flex-col gap-4 bg-white items-center shadow-lg shadow-[#00000030] rounded-2xl overflow-y-scroll'>
-            
+
             {/* USER HEADER */}
             <div className='w-full flex justify-between items-center px-4 py-3'>
-                <div className='flex items-center gap-4' onClick={() => navigate(`/profile/${post.author.userName}`)}>
+                <div
+                    className='flex items-center gap-4'
+                    onClick={() => navigate(`/profile/${post.author.userName}`)}
+                >
                     <div className='w-12 h-12 md:w-14 md:h-14 border-2 border-gray-300 rounded-full cursor-pointer overflow-hidden'>
                         <img src={post.author?.profileImage || dp} alt="" className='w-full h-full object-cover' />
                     </div>
+
                     <div className='font-semibold text-gray-800 truncate max-w-[120px] md:max-w-[150px]'>
                         {post?.author?.userName}
                     </div>
                 </div>
 
-                {userData._id != post.author._id &&
+                {/* Follow button hide on own post */}
+                {userData._id !== post.author._id &&
                     <FollowButton
                         tailwind={'px-4 md:px-5 py-1 md:py-2 rounded-2xl text-sm md:text-base bg-black text-white hover:bg-gray-800 transition'}
                         targetUserId={post.author._id}
                     />
                 }
 
+                {/* DELETE own post */}
                 {userData._id === post.author._id && (
                     <button
                         onClick={() => handleDelete(post._id)}
@@ -141,14 +159,10 @@ function Post({ post }) {
                 )}
             </div>
 
-            {/* POST MEDIA */}
+            {/* MEDIA */}
             <div className="w-full flex items-center justify-center">
                 {post.mediaType === "image" && (
-                    <img
-                        src={post.media}
-                        alt=""
-                        className="w-full h-full object-cover rounded-2xl"
-                    />
+                    <img src={post.media} alt="" className="w-full h-full object-cover rounded-2xl" />
                 )}
 
                 {post.mediaType === "video" && (
@@ -160,37 +174,45 @@ function Post({ post }) {
 
             {/* ACTION BUTTONS */}
             <div className='w-full h-[60px] flex justify-between items-center px-[20px] mt-[10px]'>
+
                 <div className='flex justify-center items-center gap-[10px]'>
 
+                    {/* LIKE */}
                     <div className='flex justify-center items-center gap-[5px]' onClick={handleLike}>
-                        {!post.likes.includes(userData._id) && <FaRegHeart className="w-[25px] cursor-pointer h-[25px]" />}
-                        {post.likes.includes(userData._id) && <FaHeart className="w-[25px] cursor-pointer h-[25px] text-red-600" />}
+                        {!post.likes.includes(userData._id) && (
+                            <FaRegHeart className="w-[25px] cursor-pointer h-[25px]" />
+                        )}
+                        {post.likes.includes(userData._id) && (
+                            <FaHeart className="w-[25px] cursor-pointer h-[25px] text-red-600" />
+                        )}
                         <span>{post.likes.length}</span>
                     </div>
 
-                    <div className='flex justify-center items-center gap-[5px]' onClick={() => setshowComment(prev => !prev)}>
+                    {/* COMMENT */}
+                    <div
+                        className='flex justify-center items-center gap-[5px]'
+                        onClick={() => setshowComment(prev => !prev)}
+                    >
                         <FaRegComment className="w-[25px] cursor-pointer h-[25px]" />
                         <span>{post.comments.length}</span>
                     </div>
 
                 </div>
 
-                {/* ⭐ SAVE BUTTON PERFECTLY WORKING NOW */}
+                {/* SAVE */}
                 <div onClick={handleSaved}>
-                    {!userData.saved.includes(post?._id) &&
+                    {!userData.saved.includes(post?._id) ? (
                         <FaRegBookmark className="w-[25px] cursor-pointer h-[25px]" />
-                    }
-
-                    {userData.saved.includes(post?._id) &&
+                    ) : (
                         <FaBookmark className="w-[25px] cursor-pointer h-[25px]" />
-                    }
+                    )}
                 </div>
             </div>
 
             {/* CAPTION */}
             {post.caption && (
                 <div className='w-full px-[20px] gap-[10px] flex justify-start items-center'>
-                    <h1>{post.author.userName}</h1>
+                    <h1 className='font-semibold'>{post.author.userName}</h1>
                     <div>{post.caption}</div>
                 </div>
             )}
@@ -199,9 +221,10 @@ function Post({ post }) {
             {showComment &&
                 <div className='w-full flex flex-col gap-[30px] pb-[20px]'>
 
+                    {/* Add Comment */}
                     <div className='w-full h-[80px] flex items-center justify-between px-[20px]'>
                         <div className='w-[40px] h-[40px] border-2 border-gray-300 rounded-full overflow-hidden'>
-                            <img src={post.author?.profileImage || dp} alt="" className='w-full h-full object-cover' />
+                            <img src={userData?.profileImage || dp} alt="" className='w-full h-full object-cover' />
                         </div>
 
                         <input
@@ -217,28 +240,52 @@ function Post({ post }) {
                         </button>
                     </div>
 
+                    {/* COMMENT LIST */}
                     <div className='w-full max-h-[300px] overflow-auto'>
+
                         {post.comments?.map((com) => (
-                            <div key={com._id} className='w-full px-[20px] py-[20px] flex items-center gap-[20px] border-b-2 border-b-gray-200'>
+                            <div key={com._id} className='w-full px-[20px] py-[20px] border-b-2 border-b-gray-200'>
 
-                                <div className='w-[40px] h-[40px] border-2 border-gray-300 rounded-full overflow-hidden'>
-                                    <img src={com.author?.profileImage || dp} alt="" className='w-full h-full object-cover' />
-                                </div>
-
-                                <div className='flex-1'>
-                                    {com.message}
-                                </div>
-
-                                {userData._id === com.author._id && (
-                                    <button
-                                        onClick={() => handleCommentDelete(post._id, com._id)}
-                                        className='text-red-500 text-sm'
+                                <div className='flex gap-3'>
+                                    {/* IMAGE */}
+                                    <div
+                                        className='w-[40px] h-[40px] border-2 border-gray-300 rounded-full overflow-hidden cursor-pointer'
+                                        onClick={() => navigate(`/profile/${com.author.userName}`)}
                                     >
-                                        Delete
-                                    </button>
-                                )}
+                                        <img src={com.author?.profileImage || dp} alt="" className='w-full h-full object-cover' />
+                                    </div>
+
+                                    <div className='flex flex-col'>
+
+                                        {/* Username (lighter black) */}
+                                        <span
+                                            className='text-black font-medium cursor-pointer'
+                                            onClick={() => navigate(`/profile/${com.author.userName}`)}
+                                        >
+                                            {com.author.userName}
+                                        </span>
+
+                                        {/* Comment text */}
+                                        <span className='text-gray-700'>
+                                            {com.message}
+                                        </span>
+
+                                    </div>
+
+                                    {/* delete */}
+                                    {userData._id === com.author._id && (
+                                        <button
+                                            onClick={() => handleCommentDelete(post._id, com._id)}
+                                            className='text-red-500 text-sm ml-auto'
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
+
                             </div>
                         ))}
+
                     </div>
 
                 </div>

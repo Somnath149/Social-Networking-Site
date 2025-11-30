@@ -190,7 +190,10 @@ function Profile() {
           <FollowersFollowingModal
             type={modalType}
             users={modalType === "followers" ? profileData?.followers : profileData?.following}
-            onClose={() => setShowModal(false)}
+            onClose={() => {
+              setShowModal(false)
+              handleProfile()  // ⭐ refresh followers/following count real-time
+            }}
           />
         </div>
       )}
