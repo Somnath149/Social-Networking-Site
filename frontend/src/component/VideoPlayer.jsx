@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, forwardRef } from 'react'
 
-function VideoPlayer({ media }) {
-  const videoRef = useRef()
-  const [isMuted, setIsMuted] = useState(false) // default sound on
+const VideoPlayer = forwardRef(({ media }, ref) => {
+  const internalRef = useRef()
+  const videoRef = ref || internalRef // use forwarded ref if provided
+  const [isMuted, setIsMuted] = useState(false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -13,7 +14,6 @@ function VideoPlayer({ media }) {
         video
           .play()
           .catch(() => {
-            // Autoplay block fix → force mute + retry
             video.muted = true
             video.play().catch(() => {})
           })
@@ -27,11 +27,9 @@ function VideoPlayer({ media }) {
     }
 
     return () => {
-      if (videoRef.current) {
-        observer.unobserve(videoRef.current)
-      }
+      if (videoRef.current) observer.unobserve(videoRef.current)
     }
-  }, [])
+  }, [videoRef])
 
   const toggleMute = () => {
     const video = videoRef.current
@@ -45,14 +43,12 @@ function VideoPlayer({ media }) {
       <video
         src={media}
         ref={videoRef}
-        loop
         playsInline
         controls
-        muted={isMuted} // control mute dynamically
+        muted={isMuted}
         className='h-[100%] cursor-pointer w-full object-cover rounded-2xl'
       ></video>
 
-      {/* Optional: click to toggle sound */}
       <button
         onClick={toggleMute}
         className='absolute bottom-4 right-4 bg-black/50 text-white p-2 rounded-lg'
@@ -61,6 +57,6 @@ function VideoPlayer({ media }) {
       </button>
     </div>
   )
-}
+})
 
 export default VideoPlayer

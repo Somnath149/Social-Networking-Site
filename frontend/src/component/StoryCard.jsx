@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import dp from "../assets/dp.png"
 import { useSelector } from 'react-redux'
 import { MdOutlineKeyboardBackspace } from 'react-icons/md'
@@ -12,7 +12,10 @@ function StoryCard({ storyData }) {
     const [showViewers, setShowViewers] = useState(false)
     const navigate = useNavigate()
     const [progress, setProgress] = useState(0)
+    const videoRef = useRef(null)
     const { userData } = useSelector(state => state.user)
+
+    const STORY_DURATION = 5000 // 5 seconds for image story
 
     // Delete story
     const deleteStoryHandler = async () => {
@@ -26,33 +29,53 @@ function StoryCard({ storyData }) {
         }
     }
 
-    // Progress bar
+    // Progress handling
     useEffect(() => {
-        const interval = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 100) {
+        let interval
+        if (storyData?.mediaType === "video") {
+            const video = videoRef.current
+            if (!video) return
+
+            const updateProgress = () => {
+                const percent = (video.currentTime / (video.duration || 1)) * 100
+                setProgress(Math.min(percent, 100))
+                if (percent >= 100) navigate("/")
+            }
+
+            const handleEnded = () => navigate("/")
+
+            video.addEventListener("timeupdate", updateProgress)
+            video.addEventListener("ended", handleEnded)
+
+            return () => {
+                video.removeEventListener("timeupdate", updateProgress)
+                video.removeEventListener("ended", handleEnded)
+            }
+        } else if (storyData?.mediaType === "image") {
+            // Image story: use timer
+            let start = Date.now()
+            interval = setInterval(() => {
+                const elapsed = Date.now() - start
+                const percent = (elapsed / STORY_DURATION) * 100
+                setProgress(Math.min(percent, 100))
+                if (percent >= 100) {
                     clearInterval(interval)
                     navigate("/")
-                    return 100
                 }
-                return prev + 1
-            })
-        }, 150)
+            }, 50)
+        }
 
         return () => clearInterval(interval)
-    }, [navigate])
+    }, [storyData, navigate])
 
     return (
         <div className='w-full max-w-[500px] h-[100vh] border-x-2 border-gray-800 pt-[60px] relative flex flex-col justify-center'>
-
             {/* Top bar */}
             <div className='flex items-center gap-[10px] absolute top-[10px] px-[10px] w-full z-10'>
                 <MdOutlineKeyboardBackspace
                     onClick={() => navigate(`/`)}
                     className='text-white cursor-pointer w-[25px] h-[25px]'
                 />
-
-                {/* Author DP */}
                 <div
                     className='w-[30px] h-[30px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full cursor-pointer overflow-hidden'
                     onClick={() => navigate(`/profile/${storyData?.author?.userName}`)}
@@ -63,16 +86,12 @@ function StoryCard({ storyData }) {
                         className='w-full h-full object-cover'
                     />
                 </div>
-
-                {/* Author Name */}
                 <div
                     className='font-semibold truncate text-white max-w-[150px] cursor-pointer'
                     onClick={() => navigate(`/profile/${storyData?.author?.userName}`)}
                 >
                     {storyData?.author?.userName}
                 </div>
-
-                {/* Delete Button */}
                 {storyData?.author?.userName === userData?.userName && (
                     <div className='absolute top-[5px] right-[10px] z-20'>
                         <FaTrash
@@ -85,8 +104,6 @@ function StoryCard({ storyData }) {
 
             {/* Story content */}
             {!showViewers && <div className="w-full h-[90vh] flex items-center justify-center">
-
-                {/* Image Story */}
                 {storyData?.mediaType === "image" && (
                     <div className="w-full h-full flex items-center justify-center">
                         <img
@@ -96,11 +113,13 @@ function StoryCard({ storyData }) {
                         />
                     </div>
                 )}
-
-                {/* Video Story */}
                 {storyData?.mediaType === "video" && (
                     <div className="w-full h-full flex items-center justify-center">
-                        <VideoPlayer media={storyData.media} className="w-full h-full" />
+                        <VideoPlayer
+                            ref={videoRef}
+                            media={storyData.media}
+                            className="w-full h-full"
+                        />
                     </div>
                 )}
             </div>}
@@ -108,7 +127,7 @@ function StoryCard({ storyData }) {
             {/* Progress Bar */}
             <div className='absolute top-[10px] w-full h-[3px] bg-gray-900'>
                 <div
-                    className='h-full bg-white transition-all duration-200 ease-linear'
+                    className='h-full bg-white transition-all duration-50 ease-linear'
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
@@ -122,8 +141,6 @@ function StoryCard({ storyData }) {
                     <div className='text-white flex items-center gap-[5px]'>
                         <FaEye /> {storyData?.viewers?.filter(v => v?.userName !== userData?.userName).length || 0}
                     </div>
-
-                    {/* Viewers DP */}
                     <div className='flex relative'>
                         {storyData?.viewers
                             ?.filter(v => v?.userName !== userData?.userName)
@@ -154,10 +171,13 @@ function StoryCard({ storyData }) {
                             className="max-w-full max-h-full object-contain rounded-2xl"
                         />
                     )}
-
                     {storyData?.mediaType === "video" && (
                         <div className="w-full h-full rounded-2xl overflow-hidden">
-                            <VideoPlayer media={storyData.media} className="w-full h-full" />
+                            <VideoPlayer
+                                ref={videoRef}
+                                media={storyData.media}
+                                className="w-full h-full"
+                            />
                         </div>
                     )}
                 </div>
@@ -168,7 +188,6 @@ function StoryCard({ storyData }) {
                         {storyData?.viewers?.filter(v => v?.userName !== userData?.userName).length || 0}
                         <span>Viewers</span>
                     </div>
-
                     <div className='w-full max-h-full flex flex-col gap-[10px] overflow-auto pt-[20px]'>
                         {storyData?.viewers
                             ?.filter(v => v?.userName !== userData?.userName)
