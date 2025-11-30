@@ -97,12 +97,19 @@ function StoryCard({ storyData }) {
                 {storyData?.author?.userName == userData?.userName &&
                     <div className='absolute flex items-center gap-[10px] w-full cursor-pointer text-white h-[70px] bottom-0 p-2 left-0'
                         onClick={() => setShowViewers(true)}>
-                        <div className='text-white flex items-center gap-[5px]'> <FaEye /> {storyData?.viewers?.length || 0}</div>
+                        {/* ⭐ Count excluding owner's own view */}
+                        <div className='text-white flex items-center gap-[5px]'> 
+                            <FaEye /> {storyData?.viewers?.filter(viewer => viewer?.userName !== userData?.userName).length || 0}
+                        </div>
                         <div className='flex relative'>
                             {
-                                storyData?.viewers?.slice(0, 3).map((viewer, index) => (
-                                    <div className={`w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden
-                                       ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}>
+                                storyData?.viewers?.filter(viewer => viewer?.userName !== userData?.userName).slice(0, 3).map((viewer, index) => (
+                                    <div 
+                                        key={viewer._id || index} 
+                                        className={`w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden
+                                       ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}
+                                        onClick={() => navigate(`/profile/${viewer.userName}`)} // ✅ fixed
+                                    >
                                         <img src={viewer?.profileImage || dp} alt="" className='w-full object-cover' />
                                     </div>
                                 ))
@@ -132,10 +139,12 @@ function StoryCard({ storyData }) {
                 </div>
 
                 <div className='w-full h-[70%] border-t-2 border-t-gray-800 p-[20px]'>
-                    <div className='text-white flex items-center gap-[10px]'> <FaEye /> {storyData?.viewers?.length || 0} <span>Viewers</span></div>
+                    <div className='text-white flex items-center gap-[10px]'> 
+                        <FaEye /> {storyData?.viewers?.filter(viewer => viewer?.userName !== userData?.userName).length || 0} <span>Viewers</span>
+                    </div>
                     <div className='w-full max-h-full flex flex-col gap-[10px] overflow-auto pt-[20px]'>
-                        {storyData?.viewers?.map((viewer, index) => {
-                            <div className='w-full flex items-center gap-[20px]'>
+                        {storyData?.viewers?.filter(viewer => viewer?.userName !== userData?.userName).map((viewer, index) => (
+                            <div key={viewer._id || index} className='w-full flex items-center gap-[20px] cursor-pointer' onClick={() => navigate(`/profile/${viewer.userName}`)}> {/* ✅ fixed */}
                                 <div className='w-[20px] h-[20px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full cursor-pointer overflow-hidden'>
                                     <img src={viewer?.profileImage || dp} alt="" className='w-full h-full object-cover shrink-0' />
                                 </div>
@@ -143,10 +152,11 @@ function StoryCard({ storyData }) {
                                     {viewer?.userName}
                                 </div>
                             </div>
-                        })}
+                        ))}
                     </div>
                 </div>
             </>}
+
         </div>
     )
 }
