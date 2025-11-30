@@ -84,64 +84,62 @@ function StoryCard({ storyData }) {
             </div>
 
             {/* Story content */}
-            {!showViewers && <>
-                <div className="w-full h-[90vh] flex items-center justify-center">
+            {!showViewers && <div className="w-full h-[90vh] flex items-center justify-center">
 
-                    {/* Image Story */}
-                    {storyData?.mediaType === "image" && (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <img
-                                src={storyData.media}
-                                alt=""
-                                className="w-full h-full object-cover rounded-2xl"
-                            />
-                        </div>
-                    )}
+                {/* Image Story */}
+                {storyData?.mediaType === "image" && (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <img
+                            src={storyData.media}
+                            alt=""
+                            className="max-w-full max-h-full object-contain rounded-2xl"
+                        />
+                    </div>
+                )}
 
-                    {/* Video Story */}
-                    {storyData?.mediaType === "video" && (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <VideoPlayer media={storyData.media} className="w-full h-full" />
-                        </div>
-                    )}
-                </div>
+                {/* Video Story */}
+                {storyData?.mediaType === "video" && (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <VideoPlayer media={storyData.media} className="w-full h-full" />
+                    </div>
+                )}
+            </div>}
 
-                {/* Progress Bar */}
-                <div className='absolute top-[10px] w-full h-[3px] bg-gray-900'>
-                    <div
-                        className='h-full bg-white transition-all duration-200 ease-linear'
-                        style={{ width: `${progress}%` }}
-                    ></div>
-                </div>
+            {/* Progress Bar */}
+            <div className='absolute top-[10px] w-full h-[3px] bg-gray-900'>
+                <div
+                    className='h-full bg-white transition-all duration-200 ease-linear'
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
 
-                {/* Viewers Section */}
-                {storyData?.author?.userName === userData?.userName &&
-                    <div
-                        className='absolute flex items-center gap-[10px] w-full cursor-pointer text-white h-[70px] bottom-0 p-2 left-0'
-                        onClick={() => setShowViewers(true)}
-                    >
-                        <div className='text-white flex items-center gap-[5px]'>
-                            <FaEye /> {storyData?.viewers?.filter(v => v?.userName !== userData?.userName).length || 0}
-                        </div>
+            {/* Viewers Section */}
+            {storyData?.author?.userName === userData?.userName &&
+                <div
+                    className='absolute flex items-center gap-[10px] w-full cursor-pointer text-white h-[70px] bottom-0 p-2 left-0'
+                    onClick={() => setShowViewers(true)}
+                >
+                    <div className='text-white flex items-center gap-[5px]'>
+                        <FaEye /> {storyData?.viewers?.filter(v => v?.userName !== userData?.userName).length || 0}
+                    </div>
 
-                        {/* Viewers DP */}
-                        <div className='flex relative'>
-                            {storyData?.viewers
-                                ?.filter(v => v?.userName !== userData?.userName)
-                                .slice(0, 3)
-                                .map((viewer, index) => (
-                                    <div
-                                        key={viewer._id || index}
-                                        className='w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden'
-                                        style={{ position: "absolute", left: `${index * 22}px` }}
-                                        onClick={() => navigate(`/profile/${viewer.userName}`)}
-                                    >
-                                        <img src={viewer?.profileImage || dp} alt="" className='w-full object-cover' />
-                                    </div>
-                                ))}
-                        </div>
-                    </div>}
-            </>}
+                    {/* Viewers DP */}
+                    <div className='flex relative'>
+                        {storyData?.viewers
+                            ?.filter(v => v?.userName !== userData?.userName)
+                            .slice(0, 3)
+                            .map((viewer, index) => (
+                                <div
+                                    key={viewer._id || index}
+                                    className='w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden'
+                                    style={{ position: "absolute", left: `${index * 22}px` }}
+                                    onClick={() => navigate(`/profile/${viewer.userName}`)}
+                                >
+                                    <img src={viewer?.profileImage || dp} alt="" className='w-full object-cover' />
+                                </div>
+                            ))}
+                    </div>
+                </div>}
 
             {/* Full Viewers List */}
             {showViewers && <>
@@ -153,7 +151,7 @@ function StoryCard({ storyData }) {
                         <img
                             src={storyData?.media}
                             alt=""
-                            className="h-full w-full object-cover rounded-2xl"
+                            className="max-w-full max-h-full object-contain rounded-2xl"
                         />
                     )}
 
