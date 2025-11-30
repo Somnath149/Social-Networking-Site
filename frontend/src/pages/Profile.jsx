@@ -50,6 +50,9 @@ function Profile() {
     } catch (error) { console.log(error) }
   }
 
+  // Filter posts of this profile
+  const userPosts = postData.filter(post => String(post.author?._id) === String(profileData?._id))
+
   return (
     <div className='w-full h-screen overflow-y-auto bg-black'>
 
@@ -95,7 +98,6 @@ function Profile() {
 
       {/* Buttons */}
       <div className='w-full h-[80px] flex justify-center items-center gap-[20px]'>
-
         {profileData?._id === userData._id ? (
           <button
             className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
@@ -111,7 +113,6 @@ function Profile() {
               onFollowChange={handleProfile}
             />
 
-            {/* FIXED MESSAGE BUTTON */}
             <button
               className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
               onClick={() => {
@@ -123,7 +124,6 @@ function Profile() {
             </button>
           </>
         )}
-
       </div>
 
       {/* Tabs */}
@@ -136,33 +136,23 @@ function Profile() {
       <div className='w-full min-h-[50vh] flex justify-center mt-4'>
         <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[16px] pb-[100px]'>
 
-          {activeTab === "posts" &&
-            postData.filter(p => p.author?._id === profileData?._id).length === 0 && (
-              <div className='flex flex-col items-center mt-8'>
-                <p className='text-gray-500 text-lg mb-3'>No Posts Yet</p>
+          {activeTab === "posts" && userPosts.length === 0 && (
+            <p className='text-gray-500 text-lg my-10'>No Posts Yet</p>
+          )}
 
-                {profileData?._id === userData._id && (
-                  <button
-                    onClick={() => navigate("/upload?tab=post")}
-                    className="w-[60px] h-[60px] rounded-full bg-[#1DA1F2] text-white flex items-center justify-center shadow-xl text-[28px] font-bold"
-                  >
-                    <FaPlus />
-                  </button>
-                )}
+          {activeTab === "posts" && userPosts.map((post, index) => (
+            <Post post={post} key={index} />
+          ))}
 
-              </div>
-            )
-          }
-
-          {activeTab === "posts" &&
-            postData
-              .filter(post => post.author?._id === profileData?._id)
-              .map((post, index) => (
-                <div key={index} onClick={() => navigate(`/upload?tab=reel`)}>
-                  <Post post={post} />
-                </div>
-              ))
-          }
+          {/* + Button always visible for profile owner */}
+          {activeTab === "posts" && profileData?._id === userData._id && (
+            <button
+              onClick={() => navigate("/upload?tab=post")}
+              className="w-[60px] h-[60px] rounded-full bg-[#1DA1F2] text-white flex items-center justify-center shadow-xl text-[28px] font-bold fixed bottom-10 right-10"
+            >
+              <FaPlus />
+            </button>
+          )}
 
           {activeTab === "saved" && savedPosts.length === 0 && (
             <h2 className='text-gray-500 text-lg my-10'>No saved posts</h2>
