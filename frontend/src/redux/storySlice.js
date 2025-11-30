@@ -19,9 +19,21 @@ const storySlice = createSlice({
         setCurrentUserStory: (state, action) => {
             state.currentUserStory = action.payload
             console.log("Inside reducer - Story current user story:", action.payload);
+        },
+
+        // ⭐ NEW REDUCER
+        deleteStoryRedux: (state, action) => {
+            if (state.storyList) {
+                state.storyList = state.storyList.filter(
+                    story => story._id !== action.payload
+                )
+            }
+            if (state.currentUserStory?._id === action.payload) {
+                state.currentUserStory = null
+            }
         }
     }
 })
 
-export const { setStoryData , setStoryList, setCurrentUserStory } = storySlice.actions
+export const { setStoryData , setStoryList, setCurrentUserStory, deleteStoryRedux } = storySlice.actions
 export default storySlice.reducer

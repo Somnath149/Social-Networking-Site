@@ -74,18 +74,47 @@ export const getStoryByUserName = async (req, res) => {
     }
 }
 
-
 export const getAllStories = async (req, res) => {
     try {
         const currentUser = await User.findById(req.userId)
         const followingIds = currentUser.following
 
         const stories = await Story.find({
-            author:{$in:followingIds}
-        }).populate("viewers author").sort({createdAt: -1})
+            author:{ $in: followingIds }
+        }).populate("viewers author").sort({ createdAt: -1 })
 
         return res.status(200).json(stories)
     } catch (error) {
         return res.status(500).json({ message: "All story get by username error" })
     }
 }
+
+/* 
+------------------------------------------------------
+✔ ADDED BELOW → Delete Story (NO other changes)
+------------------------------------------------------
+*/
+
+export const deleteStory = async (req, res) => {
+    try {
+        const storyId = req.params.storyId;
+        const story = await Story.findById(storyId);
+
+        if (!story) {
+            return res.status(404).json({ message: "Story not found" });
+        }
+
+        if (story.author.toString() !== req.userId.toString()) {
+            return res.status(403).json({ message: "Not allowed" });
+        }
+
+        await Story.findByIdAndDelete(storyId);
+
+        // Remove reference from user
+        await User.findByIdAndUpdate(req.userId, { story: null });
+
+        return res.status(200).json({ message: "Story deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: "Delete story error" });
+    }
+};

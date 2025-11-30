@@ -4,8 +4,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { MdOutlineKeyboardBackspace } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import VideoPlayer from './VideoPlayer'
-import { FaEye } from 'react-icons/fa6'
+import { FaEye, FaTrash } from 'react-icons/fa6'
 import { div } from 'framer-motion/client'
+import axios from "axios"
+import { serverUrl } from '../App'
+
 function StoryCard({ storyData }) {
 
     const [showViewers, setShowViewers] = useState(false)
@@ -13,6 +16,19 @@ function StoryCard({ storyData }) {
     const navigate = useNavigate()
     const [progress, setProgress] = useState(0)
     const { userData } = useSelector(state => state.user)
+
+    // ⭐ DELETE STORY HANDLER (NEW)
+    const deleteStoryHandler = async () => {
+        try {
+            await axios.delete(`${serverUrl}/api/story/delete/${storyData?._id}`, {
+                withCredentials: true
+            })
+            navigate("/")
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     useEffect(() => {
         const interval = setInterval(() => {
             setProgress(prev => {
@@ -28,7 +44,6 @@ function StoryCard({ storyData }) {
         return () => clearInterval(interval)
     }, [navigate])
 
-
     return (
         <div className='w-full max-w-[500px] h-[100vh] border-x-2 border-gray-800 pt-[10px] relative flex flex-col justify-center'>
 
@@ -41,6 +56,14 @@ function StoryCard({ storyData }) {
                 <div className='font-semibold truncate text-white max-w-[120px] md:max-w-[150px]'>
                     {storyData?.author?.userName}
                 </div>
+
+                {/* ⭐ DELETE BUTTON (ONLY STORY OWNER) */}
+                {storyData?.author?.userName === userData?.userName && (
+                    <FaTrash
+                        onClick={deleteStoryHandler}
+                        className='text-red-500 cursor-pointer ml-auto'
+                    />
+                )}
             </div>
 
             {!showViewers && <>
@@ -68,42 +91,43 @@ function StoryCard({ storyData }) {
 
                     </div>
                 </div>
-                {storyData?.author?.userName == userData?.userName && 
-                <div className='absolute flex items-center gap-[10px] w-full cursor-pointer text-white h-[70px] bottom-0 p-2 left-0'
-                 onClick={()=>setShowViewers(true)}>
-                    <div className='text-white flex items-center gap-[5px]'> <FaEye /> {storyData?.viewers?.length || 0}</div>
-                    <div className='flex relative'>
 
-                        {
-                            storyData?.viewers?.slice(0, 3).map((viewer, index) => (
-                                <div className={`w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden
-                                   ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}>
-                                    <img src={viewer?.profileImage || dp1} alt="" className='w-full object-cover' />
-                                </div>
-                            ))
-                        }
-                    </div>
-                </div>}
+                {storyData?.author?.userName == userData?.userName &&
+                    <div className='absolute flex items-center gap-[10px] w-full cursor-pointer text-white h-[70px] bottom-0 p-2 left-0'
+                        onClick={() => setShowViewers(true)}>
+                        <div className='text-white flex items-center gap-[5px]'> <FaEye /> {storyData?.viewers?.length || 0}</div>
+                        <div className='flex relative'>
+                            {
+                                storyData?.viewers?.slice(0, 3).map((viewer, index) => (
+                                    <div className={`w-[30px] h-[30px] border-2 border-black rounded-full cursor-pointer overflow-hidden
+                                       ${index > 0 ? `absolute left-[${index * 9}px]` : ""}`}>
+                                        <img src={viewer?.profileImage || dp} alt="" className='w-full object-cover' />
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>}
             </>}
 
-            {showViewers && <>  <div className="w-[full] h-[30%] flex items-center justify-center mt-[100px] py-[30px] cursor-pointer overflow-hidden"
-            onClick={()=>setShowViewers(false)}>
-                {storyData?.mediaType == "image" && (
-                    <div className="h-[full] flex items-center justify-center">
-                        <img
-                            src={storyData?.media}
-                            alt=""
-                            className="h-full object-cover rounded-2xl"
-                        />
-                    </div>
-                )}
+            {showViewers && <>  
+                <div className="w-[full] h-[30%] flex items-center justify-center mt-[100px] py-[30px] cursor-pointer overflow-hidden"
+                    onClick={() => setShowViewers(false)}>
+                    {storyData?.mediaType == "image" && (
+                        <div className="h-[full] flex items-center justify-center">
+                            <img
+                                src={storyData?.media}
+                                alt=""
+                                className="h-full object-cover rounded-2xl"
+                            />
+                        </div>
+                    )}
 
-                {storyData?.mediaType == "video" &&
-                    <div className="h-full max-w-[500px] flex items-center justify-center">
-                        <VideoPlayer media={storyData.media} />
-                    </div>
-                }
-            </div>
+                    {storyData?.mediaType == "video" &&
+                        <div className="h-full max-w-[500px] flex items-center justify-center">
+                            <VideoPlayer media={storyData.media} />
+                        </div>
+                    }
+                </div>
 
                 <div className='w-full h-[70%] border-t-2 border-t-gray-800 p-[20px]'>
                     <div className='text-white flex items-center gap-[10px]'> <FaEye /> {storyData?.viewers?.length || 0} <span>Viewers</span></div>
@@ -121,8 +145,6 @@ function StoryCard({ storyData }) {
                     </div>
                 </div>
             </>}
-
-
         </div>
     )
 }
