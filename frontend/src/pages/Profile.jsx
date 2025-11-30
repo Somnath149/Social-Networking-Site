@@ -10,6 +10,7 @@ import dp1 from "../assets/dp1.jpeg"
 import FollowButton from '../component/FollowButton'
 import Post from '../component/Post'
 import { FaPlus } from "react-icons/fa"
+import { setSelectedUser } from "../redux/messageSlice"
 
 function Profile() {
   const [activeTab, setActiveTab] = useState("posts")
@@ -94,20 +95,35 @@ function Profile() {
 
       {/* Buttons */}
       <div className='w-full h-[80px] flex justify-center items-center gap-[20px]'>
-        {profileData?._id === userData._id ?
-          <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl' onClick={() => navigate("/editprofile")}>Edit Profile</button>
-          :
+
+        {profileData?._id === userData._id ? (
+          <button
+            className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
+            onClick={() => navigate("/editprofile")}
+          >
+            Edit Profile
+          </button>
+        ) : (
           <>
             <FollowButton
               tailwind='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
               targetUserId={profileData?._id}
               onFollowChange={handleProfile}
             />
-            <button className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'>
+
+            {/* FIXED MESSAGE BUTTON */}
+            <button
+              className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
+              onClick={() => {
+                dispatch(setSelectedUser(profileData));
+                navigate("/messageArea");
+              }}
+            >
               Message
             </button>
           </>
-        }
+        )}
+
       </div>
 
       {/* Tabs */}
@@ -116,11 +132,10 @@ function Profile() {
         <button className={`font-semibold ${activeTab === "saved" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("saved")}>Saved</button>
       </div>
 
-      {/* Posts / Saved */}
+      {/* Posts */}
       <div className='w-full min-h-[50vh] flex justify-center mt-4'>
         <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[16px] pb-[100px]'>
 
-          {/* No Posts Yet → + icon only on own profile */}
           {activeTab === "posts" &&
             postData.filter(p => p.author?._id === profileData?._id).length === 0 && (
               <div className='flex flex-col items-center mt-8'>
@@ -139,7 +154,6 @@ function Profile() {
             )
           }
 
-          {/* Posts */}
           {activeTab === "posts" &&
             postData
               .filter(post => post.author?._id === profileData?._id)
@@ -150,12 +164,10 @@ function Profile() {
               ))
           }
 
-          {/* Saved empty */}
           {activeTab === "saved" && savedPosts.length === 0 && (
             <h2 className='text-gray-500 text-lg my-10'>No saved posts</h2>
           )}
 
-          {/* Saved posts */}
           {activeTab === "saved" && savedPosts.map((post, index) => (
             <Post post={post} key={index} />
           ))}
@@ -163,7 +175,6 @@ function Profile() {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <FollowersFollowingModal
           type={modalType}
