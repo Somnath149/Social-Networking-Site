@@ -64,7 +64,7 @@ function Profile() {
       {/* Profile info */}
       <div className='w-full h-[150px] flex items-start gap-[20px] lg:gap-[50px] pt-[20px] px-[10px] justify-center'>
         <div className='w-[80px] h-[80px] md:w-[140px] md:h-[140px] border-2 border-black rounded-full overflow-hidden cursor-pointer'
-             onClick={() => navigate("/upload?tab=story")}>
+             onClick={() => navigate("/editprofile")}>
           <img src={profileData?.profileImage || dp1} alt="" className='w-full h-full object-cover' />
         </div>
         <div>

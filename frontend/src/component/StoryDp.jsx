@@ -37,7 +37,7 @@ function StoryDp({ profileImage, userName, story }) {
     const handleClick = () => {
         // Redirect to upload if no story exists
         if (!story || !story._id) {
-            navigate("/upload?autoOpen=true")
+            navigate("/upload?tab=story")
             return
         }
 
