@@ -47,7 +47,7 @@ function StoryCard({ storyData }) {
     return (
         <div className='w-full max-w-[500px] h-[100vh] border-x-2 border-gray-800 pt-[10px] relative flex flex-col justify-center'>
 
-            <div className='flex items-center gap-[10px] absolute top-[30px] px-[10px]'>
+            <div className='flex items-center gap-[10px] absolute top-[30px] px-[10px] w-full'>
                 <MdOutlineKeyboardBackspace onClick={() => navigate(`/`)}
                     className='text-white cursor-pointer w-[25px] h-[25px]' />
                 <div className='w-[20px] h-[20px] md:w-[40px] md:h-[40px] border-2 border-gray-300 rounded-full cursor-pointer overflow-hidden'>
@@ -57,12 +57,14 @@ function StoryCard({ storyData }) {
                     {storyData?.author?.userName}
                 </div>
 
-                {/* ⭐ DELETE BUTTON (ONLY STORY OWNER) */}
+                {/* ⭐ DELETE BUTTON TOP RIGHT */}
                 {storyData?.author?.userName === userData?.userName && (
-                    <FaTrash
-                        onClick={deleteStoryHandler}
-                        className='text-red-500 cursor-pointer ml-auto'
-                    />
+                    <div className='absolute right-2 top-0'>
+                        <FaTrash
+                            onClick={deleteStoryHandler}
+                            className='text-red-500 cursor-pointer'
+                        />
+                    </div>
                 )}
             </div>
 
