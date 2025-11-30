@@ -11,6 +11,7 @@ import FollowButton from '../component/FollowButton'
 import Post from '../component/Post'
 import { FaPlus } from "react-icons/fa"
 import { setSelectedUser } from "../redux/messageSlice"
+import LoopCard from '../component/LoopCard'
 
 function Profile() {
   const [activeTab, setActiveTab] = useState("posts")
@@ -23,6 +24,7 @@ function Profile() {
   const dispatch = useDispatch()
   const { profileData, userData } = useSelector(state => state.user)
   const { postData } = useSelector(state => state.post)
+  const { loopData } = useSelector(state => state.loop)
 
   const handleProfile = async () => {
     try {
@@ -50,13 +52,16 @@ function Profile() {
     } catch (error) { console.log(error) }
   }
 
-  // Filter posts of this profile
+  // ALL USER POSTS
   const userPosts = postData.filter(post => String(post.author?._id) === String(profileData?._id))
+
+  // ALL USER REELS
+  const userReels = loopData.filter(loop => String(loop.author?._id) === String(profileData?._id))
 
   return (
     <div className='w-full h-screen overflow-y-auto bg-black'>
 
-      {/* Top bar */}
+      {/* Top Bar */}
       <div className='w-full h-[80px] flex justify-between items-center px-[30px] text-white'>
         <div className='cursor-pointer' onClick={() => navigate("/")}>
           <MdOutlineKeyboardBackspace className='text-white w-[25px] h-[25px]' />
@@ -65,12 +70,13 @@ function Profile() {
         <div className='font-semibold cursor-pointer text-[20px]' onClick={handleLogOut}>Log out</div>
       </div>
 
-      {/* Profile info */}
+      {/* Profile Info */}
       <div className='w-full h-[150px] flex items-start gap-[20px] lg:gap-[50px] pt-[20px] px-[10px] justify-center'>
         <div className='w-[80px] h-[80px] md:w-[140px] md:h-[140px] border-2 border-black rounded-full overflow-hidden cursor-pointer'
              onClick={() => navigate("/editprofile")}>
           <img src={profileData?.profileImage || dp1} alt="" className='w-full h-full object-cover' />
         </div>
+
         <div>
           <div className='font-semibold text-[22px] text-white'>{profileData?.name}</div>
           <div className='text-[17px] text-[#ffffffe8]'>{profileData?.profession || "New User"}</div>
@@ -78,10 +84,12 @@ function Profile() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* STATS */}
       <div className='w-full h-[100px] flex items-center justify-center gap-[40px] md:gap-[60px] px-[20%] pt-[30px] text-white'>
         <div>
-          <div className='text-white text-[22px] md:text-[30px] font-semibold'>{profileData?.posts.length}</div>
+          <div className='text-white text-[22px] md:text-[30px] font-semibold'>
+            {(profileData?.posts?.length || 0) + (profileData?.loops?.length || 0)}
+          </div>
           <div className='text-[18px] md:text-[22px] text-[#ffffffc7]'>Posts</div>
         </div>
 
@@ -96,7 +104,7 @@ function Profile() {
         </div>
       </div>
 
-      {/* Buttons */}
+      {/* BUTTONS */}
       <div className='w-full h-[80px] flex justify-center items-center gap-[20px]'>
         {profileData?._id === userData._id ? (
           <button
@@ -112,7 +120,6 @@ function Profile() {
               targetUserId={profileData?._id}
               onFollowChange={handleProfile}
             />
-
             <button
               className='px-[10px] min-w-[150px] py-[5px] h-[40px] bg-white cursor-pointer rounded-2xl'
               onClick={() => {
@@ -126,25 +133,27 @@ function Profile() {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* TABS */}
       <div className='flex justify-center gap-10 mt-6 text-white'>
         <button className={`font-semibold ${activeTab === "posts" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("posts")}>Posts</button>
+        <button className={`font-semibold ${activeTab === "reels" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("reels")}>Reels</button>
         <button className={`font-semibold ${activeTab === "saved" ? "border-b-2 border-white pb-1" : ""}`} onClick={() => setActiveTab("saved")}>Saved</button>
       </div>
 
-      {/* Posts */}
+      {/* CONTENT BOX */}
       <div className='w-full min-h-[50vh] flex justify-center mt-4'>
-        <div className='w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] bg-white relative gap-[20px] pt-[16px] pb-[100px]'>
+        <div className={`w-full max-w-[900px] flex flex-col items-center rounded-t-[30px] relative gap-[20px] pt-[16px] pb-[40px] 
+          ${activeTab === "reels" ? "bg-[#1a1a1a]" : "bg-white"}`}>
 
+          {/* POSTS */}
           {activeTab === "posts" && userPosts.length === 0 && (
             <p className='text-gray-500 text-lg my-10'>No Posts Yet</p>
           )}
-
           {activeTab === "posts" && userPosts.map((post, index) => (
             <Post post={post} key={index} />
           ))}
 
-          {/* + Button always visible for profile owner */}
+          {/* UPLOAD BUTTON ONLY IN POSTS TAB */}
           {activeTab === "posts" && profileData?._id === userData._id && (
             <button
               onClick={() => navigate("/upload?tab=post")}
@@ -154,10 +163,20 @@ function Profile() {
             </button>
           )}
 
+          {/* REELS */}
+          {activeTab === "reels" && userReels.length === 0 && (
+            <p className='text-gray-400 text-lg my-10'>No Reels Yet</p>
+          )}
+          {activeTab === "reels" && userReels.map((loop, index) => (
+            <div key={index} className="w-full flex justify-center items-center">
+              <LoopCard loop={loop} onProfileClick={(u) => navigate(`/profile/${u}`)} />
+            </div>
+          ))}
+
+          {/* SAVED */}
           {activeTab === "saved" && savedPosts.length === 0 && (
             <h2 className='text-gray-500 text-lg my-10'>No saved posts</h2>
           )}
-
           {activeTab === "saved" && savedPosts.map((post, index) => (
             <Post post={post} key={index} />
           ))}
@@ -165,14 +184,16 @@ function Profile() {
         </div>
       </div>
 
+      {/* FOLLOWERS/FOLLOWING MODAL */}
       {showModal && (
-        <FollowersFollowingModal
-          type={modalType}
-          users={modalType === "followers" ? profileData?.followers : profileData?.following}
-          onClose={() => setShowModal(false)}
-        />
+        <div className="fixed top-0 left-0 w-full h-full bg-black/70 z-[300] flex justify-center items-center">
+          <FollowersFollowingModal
+            type={modalType}
+            users={modalType === "followers" ? profileData?.followers : profileData?.following}
+            onClose={() => setShowModal(false)}
+          />
+        </div>
       )}
-
     </div>
   )
 }
