@@ -26,6 +26,7 @@ function Profile() {
   const { postData } = useSelector(state => state.post)
   const { loopData } = useSelector(state => state.loop)
 
+  // Fetch profile data
   const handleProfile = async () => {
     try {
       const result = await axios.get(`${serverUrl}/api/user/getProfile/${userName}`, { withCredentials: true })
@@ -33,17 +34,23 @@ function Profile() {
     } catch (error) { console.log(error) }
   }
 
+  // Fetch saved posts of current logged-in user only
   const fetchSavedPosts = async () => {
     try {
       const res = await axios.get(`${serverUrl}/api/post/savedPosts`, { withCredentials: true })
-      setSavedPosts(res.data)
+      // filter only posts saved by this profile user
+      if(profileData?._id === userData._id){
+        setSavedPosts(res.data)
+      } else {
+        setSavedPosts([]) // other users cannot see saved posts
+      }
     } catch (error) { console.log(error) }
   }
 
   useEffect(() => {
     handleProfile()
     fetchSavedPosts()
-  }, [userName])
+  }, [userName, profileData?._id])
 
   const handleLogOut = async () => {
     try {
@@ -57,6 +64,11 @@ function Profile() {
 
   // ALL USER REELS
   const userReels = loopData.filter(loop => String(loop.author?._id) === String(profileData?._id))
+
+  // Refresh a single post in savedPosts after like/comment/delete
+  const handleSavedPostUpdate = (updatedPost) => {
+    setSavedPosts(prev => prev.map(p => p._id === updatedPost._id ? updatedPost : p))
+  }
 
   return (
     <div className='w-full h-screen overflow-y-auto bg-black'>
@@ -150,7 +162,7 @@ function Profile() {
             <p className='text-gray-500 text-lg my-10'>No Posts Yet</p>
           )}
           {activeTab === "posts" && userPosts.map((post, index) => (
-            <Post post={post} key={index} />
+            <Post key={index} post={post} onUpdate={handleSavedPostUpdate} />
           ))}
 
           {/* UPLOAD BUTTON ONLY IN POSTS TAB */}
@@ -173,12 +185,12 @@ function Profile() {
             </div>
           ))}
 
-          {/* SAVED */}
+          {/* SAVED POSTS */}
           {activeTab === "saved" && savedPosts.length === 0 && (
             <h2 className='text-gray-500 text-lg my-10'>No saved posts</h2>
           )}
           {activeTab === "saved" && savedPosts.map((post, index) => (
-            <Post post={post} key={index} />
+            <Post key={index} post={post} onUpdate={handleSavedPostUpdate} />
           ))}
 
         </div>
@@ -192,7 +204,7 @@ function Profile() {
             users={modalType === "followers" ? profileData?.followers : profileData?.following}
             onClose={() => {
               setShowModal(false)
-              handleProfile()  // ⭐ refresh followers/following count real-time
+              handleProfile()  // refresh followers/following count real-time
             }}
           />
         </div>
