@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-function Post({ post }) {
+function Post({ post, onUpdate }) {   // <-- added onUpdate prop
     const dispatch = useDispatch();
     const { userData } = useSelector(state => state.user);
     const { postData } = useSelector(state => state.post);
@@ -38,6 +38,8 @@ function Post({ post }) {
             dispatch(setPostData(
                 postData.map(p => p._id === post._id ? updatedPost : p)
             ));
+
+            if(onUpdate) onUpdate(updatedPost); // <-- update savedPosts in Profile.jsx
         } catch (error) {
             console.error(error);
         }
@@ -45,6 +47,7 @@ function Post({ post }) {
 
     // COMMENT ADD
     const handleComment = async () => {
+        if(message.trim() === "") return;
         try {
             const result = await axios.post(
                 `${serverUrl}/api/post/comment/${post._id}`,
@@ -52,11 +55,16 @@ function Post({ post }) {
                 { withCredentials: true }
             );
 
+            const updatedPost = result.data;
+
             dispatch(setPostData(
-                postData.map(p => p._id === post._id ? result.data : p)
+                postData.map(p => p._id === post._id ? updatedPost : p)
             ));
 
             setMessage("");
+            setshowComment(true);
+
+            if(onUpdate) onUpdate(updatedPost); // <-- update savedPosts in Profile.jsx
         } catch (error) {
             console.error(error);
         }
@@ -65,12 +73,9 @@ function Post({ post }) {
     // SAVE / UNSAVE
     const handleSaved = async () => {
         try {
-            await axios.get(`${serverUrl}/api/post/saved/${post._id}`, {
-                withCredentials: true,
-            });
+            await axios.get(`${serverUrl}/api/post/saved/${post._id}`, { withCredentials: true });
 
             let updatedSaved = [...userData.saved];
-
             if (updatedSaved.includes(post._id)) {
                 updatedSaved = updatedSaved.filter(id => id !== post._id);
             } else {
@@ -82,6 +87,7 @@ function Post({ post }) {
                 saved: updatedSaved
             }));
 
+            if(onUpdate) onUpdate({ ...post }); // <-- trigger update
         } catch (error) {
             console.error(error);
         }
@@ -97,6 +103,8 @@ function Post({ post }) {
             ));
 
             toast.success(res.data.message);
+
+            if(onUpdate) onUpdate(null); // remove from savedPosts
         } catch (error) {
             toast.error("Error deleting post");
         }
@@ -116,6 +124,7 @@ function Post({ post }) {
                 postData.map(p => p._id === postId ? updatedPost : p)
             ));
 
+            if(onUpdate) onUpdate(updatedPost); // <-- update savedPosts
         } catch (error) {
             console.error(error);
             toast.error("Error deleting comment");
@@ -140,7 +149,6 @@ function Post({ post }) {
                     </div>
                 </div>
 
-                {/* Follow button hide on own post */}
                 {userData._id !== post.author._id &&
                     <FollowButton
                         tailwind={'px-4 md:px-5 py-1 md:py-2 rounded-2xl text-sm md:text-base bg-black text-white hover:bg-gray-800 transition'}
@@ -148,7 +156,6 @@ function Post({ post }) {
                     />
                 }
 
-                {/* DELETE own post */}
                 {userData._id === post.author._id && (
                     <button
                         onClick={() => handleDelete(post._id)}
@@ -164,7 +171,6 @@ function Post({ post }) {
                 {post.mediaType === "image" && (
                     <img src={post.media} alt="" className="w-full h-full object-cover rounded-2xl" />
                 )}
-
                 {post.mediaType === "video" && (
                     <div className="w-full max-w-[500px] flex items-center justify-center">
                         <VideoPlayer media={post.media} />
@@ -174,10 +180,7 @@ function Post({ post }) {
 
             {/* ACTION BUTTONS */}
             <div className='w-full h-[60px] flex justify-between items-center px-[20px] mt-[10px]'>
-
                 <div className='flex justify-center items-center gap-[10px]'>
-
-                    {/* LIKE */}
                     <div className='flex justify-center items-center gap-[5px]' onClick={handleLike}>
                         {!post.likes.includes(userData._id) && (
                             <FaRegHeart className="w-[25px] cursor-pointer h-[25px]" />
@@ -188,7 +191,6 @@ function Post({ post }) {
                         <span>{post.likes.length}</span>
                     </div>
 
-                    {/* COMMENT */}
                     <div
                         className='flex justify-center items-center gap-[5px]'
                         onClick={() => setshowComment(prev => !prev)}
@@ -196,10 +198,8 @@ function Post({ post }) {
                         <FaRegComment className="w-[25px] cursor-pointer h-[25px]" />
                         <span>{post.comments.length}</span>
                     </div>
-
                 </div>
 
-                {/* SAVE */}
                 <div onClick={handleSaved}>
                     {!userData.saved.includes(post?._id) ? (
                         <FaRegBookmark className="w-[25px] cursor-pointer h-[25px]" />
@@ -220,8 +220,6 @@ function Post({ post }) {
             {/* COMMENTS */}
             {showComment &&
                 <div className='w-full flex flex-col gap-[30px] pb-[20px]'>
-
-                    {/* Add Comment */}
                     <div className='w-full h-[80px] flex items-center justify-between px-[20px]'>
                         <div className='w-[40px] h-[40px] border-2 border-gray-300 rounded-full overflow-hidden'>
                             <img src={userData?.profileImage || dp} alt="" className='w-full h-full object-cover' />
@@ -240,14 +238,10 @@ function Post({ post }) {
                         </button>
                     </div>
 
-                    {/* COMMENT LIST */}
                     <div className='w-full max-h-[300px] overflow-auto'>
-
                         {post.comments?.map((com) => (
                             <div key={com._id} className='w-full px-[20px] py-[20px] border-b-2 border-b-gray-200'>
-
                                 <div className='flex gap-3'>
-                                    {/* IMAGE */}
                                     <div
                                         className='w-[40px] h-[40px] border-2 border-gray-300 rounded-full overflow-hidden cursor-pointer'
                                         onClick={() => navigate(`/profile/${com.author.userName}`)}
@@ -256,8 +250,6 @@ function Post({ post }) {
                                     </div>
 
                                     <div className='flex flex-col'>
-
-                                        {/* Username (lighter black) */}
                                         <span
                                             className='text-black font-medium cursor-pointer'
                                             onClick={() => navigate(`/profile/${com.author.userName}`)}
@@ -265,14 +257,11 @@ function Post({ post }) {
                                             {com.author.userName}
                                         </span>
 
-                                        {/* Comment text */}
                                         <span className='text-gray-700'>
                                             {com.message}
                                         </span>
-
                                     </div>
 
-                                    {/* delete */}
                                     {userData._id === com.author._id && (
                                         <button
                                             onClick={() => handleCommentDelete(post._id, com._id)}
@@ -282,12 +271,9 @@ function Post({ post }) {
                                         </button>
                                     )}
                                 </div>
-
                             </div>
                         ))}
-
                     </div>
-
                 </div>
             }
 
