@@ -11,10 +11,11 @@ import loopRouter from "./routes/loop.route.js";
 import storyRouter from "./routes/story.route.js";
 import messageRouter from "./routes/message.route.js";
 
+import { app, server } from "./config/socket.js";
+
 dotenv.config();
 
-let app = express();
-let port = process.env.PORT || 5000;
+let port = process.env.PORT || 8000;
 
 app.use(express.json()); // middleware for JSON
 app.use(cookieParser());
@@ -39,7 +40,7 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log("server started at:", port);
   connentDB();
 });
