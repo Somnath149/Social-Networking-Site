@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import { FiVolume2, FiVolumeX } from 'react-icons/fi'
 import dp from "../assets/dp.png"
 import FollowButton from './FollowButton'
-import { FaHeart, FaRegHeart, FaRegComment, FaRegPaperPlane } from "react-icons/fa"
+import { FaHeart, FaRegHeart, FaRegComment, FaRegPaperPlane, FaBookmark, FaRegBookmark } from "react-icons/fa"
 import { useDispatch, useSelector } from 'react-redux'
 import { serverUrl } from '../App'
 import { setLoopData } from '../redux/loopSlice'
+import { setUserData } from '../redux/userSlice'
 import axios from 'axios'
 
 function LoopCard({ loop, onProfileClick }) {
@@ -19,9 +20,15 @@ function LoopCard({ loop, onProfileClick }) {
     const [showComment, setShowComment] = useState(false)
     const [progress, setProgress] = useState(0)
     const [showHeart, setShowHeart] = useState(false)
+    const [isSaved, setIsSaved] = useState(false)
 
     const { userData } = useSelector(state => state.user)
     const { loopData } = useSelector(state => state.loop)
+
+    // Sync local saved state with Redux userData
+    useEffect(() => {
+        setIsSaved(userData?.savedLoops?.includes(loop._id) || false)
+    }, [userData?.savedLoops, loop._id])
 
     const HandleTimeUpdate = () => {
         const video = videoRef.current
@@ -60,7 +67,7 @@ function LoopCard({ loop, onProfileClick }) {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [showComment])
 
-    // ✅ FIXED: IntersectionObserver - Auto play with sound
+    // ✅ FIXED: IntersectionObserver - Auto play with sound ONLY when visible
     useEffect(() => {
         let observer;
         
@@ -69,6 +76,7 @@ function LoopCard({ loop, onProfileClick }) {
             allVideos.forEach(vid => {
                 if (vid !== videoRef.current) {
                     vid.pause();
+                    vid.muted = true; // Mute other videos
                 }
             });
         };
@@ -77,19 +85,23 @@ function LoopCard({ loop, onProfileClick }) {
             const video = videoRef.current;
             if (!video) return;
 
-            if (entry.isIntersecting) {
+            // Only autoplay and unmute if the video is actually visible in viewport
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
                 video.play().catch(() => {});
                 setIsPlaying(true);
-                // ✅ AUTO UNMUTE ON VIEWPORT ENTRY
+                // ✅ AUTO UNMUTE ON VIEWPORT ENTRY (70% visible)
                 video.muted = false;
                 setIsMuted(false);
                 pauseAllOtherVideos();
             } else {
                 video.pause();
                 setIsPlaying(false);
+                // ✅ MUTE when not in view
+                video.muted = true;
+                setIsMuted(true);
             }
         }, { 
-            threshold: 0.7,
+            threshold: [0, 0.5, 0.7, 1],
             rootMargin: '-10% 0px -10% 0px'
         });
 
@@ -118,8 +130,17 @@ function LoopCard({ loop, onProfileClick }) {
     const handleLike = async () => {
         try {
             await axios.get(`${serverUrl}/api/loop/like/${loop._id}`, { withCredentials: true })
-            const result = await axios.get(`${serverUrl}/api/loop/getAll`, { withCredentials: true })
-            dispatch(setLoopData(result.data))
+            // Toggle like in local state
+            const updatedLoop = {
+                ...loop,
+                likes: loop.likes?.includes(userData._id) 
+                    ? loop.likes.filter(id => id !== userData._id)
+                    : [...(loop.likes || []), userData._id]
+            }
+            const updatedLoopData = loopData.map(l => 
+                l._id === loop._id ? updatedLoop : l
+            )
+            dispatch(setLoopData(updatedLoopData))
         } catch (error) {
             console.error("Like failed:", error)
         }
@@ -134,9 +155,12 @@ function LoopCard({ loop, onProfileClick }) {
     const handleComment = async () => {
         if (!message.trim()) return
         try {
-            await axios.post(`${serverUrl}/api/loop/comment/${loop._id}`, { message }, { withCredentials: true })
-            const result = await axios.get(`${serverUrl}/api/loop/getAll`, { withCredentials: true })
-            dispatch(setLoopData(result.data))
+            const commentRes = await axios.post(`${serverUrl}/api/loop/comment/${loop._id}`, { message }, { withCredentials: true })
+            // Update Redux with the updated loop data
+            const updatedLoopData = loopData.map(l => 
+                l._id === loop._id ? commentRes.data : l
+            )
+            dispatch(setLoopData(updatedLoopData))
             setMessage("")
         } catch (error) {
             console.error("Comment failed:", error)
@@ -146,18 +170,53 @@ function LoopCard({ loop, onProfileClick }) {
     const handleDeleteComment = async (commentId) => {
         try {
             await axios.delete(`${serverUrl}/api/loop/comment/${loop._id}/${commentId}`, { withCredentials: true })
-            const result = await axios.get(`${serverUrl}/api/loop/getAll`, { withCredentials: true })
-            dispatch(setLoopData(result.data))
+            // Update Redux with deleted comment removed
+            const updatedLoop = {
+                ...loop,
+                comments: loop.comments.filter(c => c._id !== commentId)
+            }
+            const updatedLoopData = loopData.map(l => 
+                l._id === loop._id ? updatedLoop : l
+            )
+            dispatch(setLoopData(updatedLoopData))
         } catch (error) {
             console.error("Delete comment failed:", error)
+        }
+    }
+
+    const handleSaveLoop = async () => {
+        try {
+            // Update local state immediately for instant UI feedback (NO SCROLL JUMP)
+            setIsSaved(!isSaved)
+            
+            // Make API call
+            await axios.get(`${serverUrl}/api/loop/save/${loop._id}`, { withCredentials: true })
+            
+            // Update Redux AFTER a delay to avoid snap-scroll issues
+            setTimeout(() => {
+                const updatedSavedLoops = !isSaved 
+                    ? userData.savedLoops.filter(id => id !== loop._id)
+                    : [...(userData.savedLoops || []), loop._id]
+                
+                const updatedUserData = {
+                    ...userData,
+                    savedLoops: updatedSavedLoops
+                }
+                dispatch(setUserData(updatedUserData))
+            }, 300)
+        } catch (error) {
+            // Revert local state if API fails
+            setIsSaved(!isSaved)
+            console.error("Save loop failed:", error)
         }
     }
 
     const handleDeleteLoop = async () => {
         try {
             await axios.delete(`${serverUrl}/api/loop/${loop._id}`, { withCredentials: true })
-            const result = await axios.get(`${serverUrl}/api/loop/getAll`, { withCredentials: true })
-            dispatch(setLoopData(result.data))
+            // Remove loop from Redux
+            const updatedLoopData = loopData.filter(l => l._id !== loop._id)
+            dispatch(setLoopData(updatedLoopData))
         } catch (error) {
             console.error("Delete loop failed:", error)
         }
@@ -335,6 +394,13 @@ function LoopCard({ loop, onProfileClick }) {
                             <FaRegComment className="w-[25px] h-[25px]" />
                         </div>
                         <div><span>{loop.comments.length}</span></div>
+                    </div>
+
+                    <div className='flex flex-col items-center cursor-pointer' onClick={handleSaveLoop}>
+                        {!isSaved
+                            ? <FaRegBookmark className="w-[25px] h-[25px]" />
+                            : <FaBookmark className="w-[25px] h-[25px]" />
+                        }
                     </div>
 
                 </div>
